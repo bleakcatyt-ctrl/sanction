@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>JARVIS</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Шапка (перетаскивание окна) -->
+  <header id="titlebar">
+    <div class="brand">
+      <img src="../assets/icon.png" alt="" class="brand-icon" />
+      <span class="brand-name">J.A.R.V.I.S</span>
+      <span class="brand-sub">быстрые действия · Alt+J</span>
+    </div>
+    <div class="win-controls">
+      <button id="btn-min" title="Свернуть">&#8211;</button>
+      <button id="btn-hide" title="Скрыть в трей">&#10005;</button>
+    </div>
+  </header>
+
+  <main id="layout">
+    <!-- Левая панель: реактор + статус + быстрые действия -->
+    <aside id="sidebar">
+      <div id="reactor-wrap">
+        <div id="reactor" class="idle">
+          <div class="ring r1"></div>
+          <div class="ring r2"></div>
+          <div class="ring r3"></div>
+          <div class="core"></div>
+        </div>
+      </div>
+      <div id="status">
+        <span id="status-dot"></span>
+        <span id="status-text">Запуск…</span>
+      </div>
+
+      <div id="quick-title">Быстрые действия</div>
+      <div id="quick-grid">
+        <button data-cmd="скриншот">📸 Скриншот</button>
+        <button data-cmd="заблокируй компьютер">🔒 Блокировка</button>
+        <button data-cmd="открой браузер">🌐 Браузер</button>
+        <button data-cmd="открой ютуб">▶️ YouTube</button>
+        <button data-cmd="открой проводник">📁 Проводник</button>
+        <button data-cmd="открой настройки">⚙️ Настройки</button>
+        <button data-cmd="погода">⛅ Погода</button>
+        <button data-cmd="который час">🕐 Время</button>
+        <button data-cmd="покажи заметки">📝 Заметки</button>
+        <button data-cmd="система">💻 Система</button>
+        <button data-cmd="без звука">🔇 Звук вкл/выкл</button>
+        <button data-cmd="помощь">❓ Помощь</button>
+      </div>
+    </aside>
+
+    <!-- Правая панель: лог + ввод -->
+    <section id="chat">
+      <div id="log"></div>
+      <div id="input-row">
+        <button id="btn-mic" title="Сказать команду (или скажи «Джарвис»)">🎤</button>
+        <input id="cmd-input" type="text" autocomplete="off"
+               placeholder="Введи команду… например: открой ютуб / таймер 5 минут / посчитай 2+2" />
+        <button id="btn-send" title="Выполнить">➤</button>
+      </div>
+      <div id="hints">
+        <span class="hint">открой блокнот</span>
+        <span class="hint">громкость 30</span>
+        <span class="hint">найди котиков</span>
+        <span class="hint">выключи компьютер</span>
+        <span class="hint">шутка</span>
+      </div>
+    </section>
+  </main>
+
+  <script src="tts.js"></script>
+  <script src="stt.js"></script>
+  <script src="commands.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>
