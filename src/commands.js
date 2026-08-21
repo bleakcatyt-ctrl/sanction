@@ -98,6 +98,7 @@
     '🎲 <b>Разное:</b> «шутка», «монетка», «кубик», «случайное число от 1 до 100»',
     '',
     '⚙️ «мои команды» — открыть файл своих команд (свои программы и сайты)',
+    '🗣 <b>Голос:</b> «голоса», «смени голос», «голос павел», «голос ирина», «говори быстрее / медленнее»',
     '🎤 Голос: скажи «Джарвис», дождись ответа и назови команду. Горячая клавиша окна — Alt+J.',
   ].join('\n');
 
@@ -627,6 +628,52 @@ $g.Dispose(); $bmp.Dispose()
       const b = parseInt(m[2], 10);
       const r = a + Math.floor(Math.random() * (b - a + 1));
       ctx.reply(`Случайное число: ${r}, сэр.`);
+      return true;
+    }
+
+    // --- голос ассистента ---
+    if (/^(какие( есть)? голоса|голоса|список голосов|покажи голоса)$/.test(text)) {
+      const list = window.JarvisTTS.listVoices();
+      if (!list.length) {
+        ctx.reply('Не вижу ни одного голоса в системе, сэр. Установите их: Параметры → Время и язык → Речь.');
+      } else {
+        const rows = list
+          .map((v, i) => `${i + 1}. ${v.name} (${v.lang})${v.current ? ' — <b>текущий</b>' : ''}`)
+          .join('\n');
+        ctx.reply(
+          '<b>Доступные голоса:</b>\n' + rows +
+            '\n\nСкажите «<b>голос 2</b>» или «<b>голос павел</b>», чтобы переключить.' +
+            '\nБольше голосов: Параметры → Время и язык → Речь → «Добавить голоса».',
+          `У меня ${list.length} ${plural(list.length, 'голос', 'голоса', 'голосов')}, сэр. Выберите любой.`
+        );
+      }
+      return true;
+    }
+    if (/^(смени|поменяй|измени|другой) голос$/.test(text)) {
+      const name = window.JarvisTTS.cycleVoice();
+      if (name) ctx.reply(`Теперь я говорю голосом «${name}», сэр. Как вам?`);
+      else ctx.reply('Не нашёл других голосов, сэр.');
+      return true;
+    }
+    if ((m = text.match(/^голос ((?!ассистента).+)$/))) {
+      const name = window.JarvisTTS.setVoiceByQuery(m[1]);
+      if (name) ctx.reply(`Готово, сэр. Мой новый голос — «${name}».`);
+      else ctx.reply(`Не нашёл голос «${m[1]}», сэр. Скажите «голоса» — покажу список.`);
+      return true;
+    }
+    if (/^говори (по)?быстрее$/.test(text)) {
+      const r = window.JarvisTTS.setRate(window.JarvisTTS.rate + 0.15);
+      ctx.reply(`Ускорился до ${r.toFixed(2)}, сэр.`);
+      return true;
+    }
+    if (/^говори (по)?медленнее$/.test(text)) {
+      const r = window.JarvisTTS.setRate(window.JarvisTTS.rate - 0.15);
+      ctx.reply(`Говорю медленнее, темп ${r.toFixed(2)}, сэр.`);
+      return true;
+    }
+    if (/^говори (нормально|обычно)$/.test(text)) {
+      window.JarvisTTS.setRate(1.05);
+      ctx.reply('Вернул обычный темп речи, сэр.');
       return true;
     }
 
