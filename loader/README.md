@@ -46,12 +46,21 @@ npm run loader:config -- https://api.example.com
 cd loader && ./build.sh              # Windows: build.cmd
 ```
 
-Two flavours:
+Three flavours:
 
 | Command | Result | Use when |
 |---|---|---|
-| `./build.sh` | self-contained single `.exe` (~70–90 MB) | you ship to end users — no runtime install |
+| `./build.sh` | self-contained single `.exe` (~70–90 MB) | you ship to end users — no runtime install; downloads runtime packs from nuget.org |
 | `./build.sh --small` | framework-dependent single `.exe` (~2 MB) | users already have the .NET 8 Desktop Runtime |
+| `./build.sh --portable` | framework-dependent, no RID (~2 MB) | nuget.org is blocked or slow — this mode downloads nothing |
+
+On Windows use `build.cmd`, `build.cmd small`, `build.cmd portable`. It verifies the
+SDK is 8+, tees the publish output to `loader/build.log`, and on failure prints the
+likely cause. When asking for help, attach `loader/build.log`.
+
+No .NET SDK on the machine at all? `docs/ci/loader-build.yml` is a ready GitHub
+Actions recipe: copy it to `.github/workflows/loader.yml`, push, and the run uploads
+both variants as artifacts you can download from the Actions page.
 
 The artifact lands in `loader/dist/Sanction.Loader.exe`, which is exactly
 `config.build.artifactPath` on the server — the site starts serving it at `/dl/loader`

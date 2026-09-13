@@ -4,6 +4,8 @@
 #
 #   ./build.sh            self-contained single file .exe  (end users, no runtime needed)
 #   ./build.sh --small    framework-dependent single file  (~2 MB, needs .NET 8 Desktop Runtime)
+#   ./build.sh --portable framework-dependent, no RID: zero NuGet downloads
+#                         (use when nuget.org is blocked; needs .NET 8 Desktop Runtime)
 #   ./build.sh --api https://api.example.com
 #                         re-embeds the API URL + server key first (npm run loader:config)
 #
@@ -12,7 +14,10 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")"
+# $0 is usually relative and the script changes directory, so resolve it once
+# here; otherwise --help tries to read a path that no longer exists.
+SCRIPT="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+cd "$(dirname "$SCRIPT")"
 ROOT="$(cd .. && pwd)"
 PROJECT="Sanction.Loader/Sanction.Loader.csproj"
 OUT="dist"
@@ -22,8 +27,9 @@ API=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --small) MODE="framework-dependent"; shift ;;
+    --portable) MODE="portable"; shift ;;
     --api) API="${2:-}"; shift 2 ;;
-    -h|--help) sed -n '2,14p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,13p' "$SCRIPT"; exit 0 ;;
     *) echo "Неизвестный аргумент: $1" >&2; exit 2 ;;
   esac
 done
@@ -39,15 +45,22 @@ if [[ -n "$API" ]]; then
 fi
 
 SELF="true"
+RID=(-r win-x64)
 if [[ "$MODE" == "framework-dependent" ]]; then SELF="false"; fi
+if [[ "$MODE" == "portable" ]]; then
+  # No RID: the publish downloads nothing from NuGet. The resulting exe needs
+  # the .NET 8 Desktop Runtime on the machine that runs it.
+  SELF="false"
+  RID=()
+fi
 
-echo "→ dotnet publish ($MODE, win-x64, single file)"
+echo "→ dotnet publish ($MODE, single file)"
 rm -rf "$OUT"
 
 # EnableWindowsTargeting lets a Linux/macOS host build the Windows exe.
 dotnet publish "$PROJECT" \
   -c Release \
-  -r win-x64 \
+  ${RID[@]+"${RID[@]}"} \
   --self-contained "$SELF" \
   -p:PublishSingleFile=true \
   -p:IncludeNativeLibrariesForSelfExtract=true \

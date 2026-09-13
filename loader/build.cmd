@@ -2,7 +2,11 @@
 REM Sanction Loader - publish script (Windows).
 REM
 REM   build.cmd                 self-contained single file .exe (end users)
-REM   build.cmd small           framework-dependent (~2 MB, needs .NET 8 Desktop Runtime)
+REM                               downloads runtime packs from nuget.org
+REM   build.cmd small           framework-dependent, win-x64 (~2 MB,
+REM                               needs .NET 8 Desktop Runtime on the PC)
+REM   build.cmd portable        framework-dependent, no RID: no NuGet downloads
+REM                               at all - use when nuget.org is blocked/slow
 REM   build.cmd api https://... re-embed API URL + server key, then publish
 REM
 REM Output: loader\dist\Sanction.Loader.exe
@@ -14,8 +18,9 @@ cd /d "%~dp0"
 set "MODE=self-contained"
 set "API="
 
-if /i "%~1"=="small" set "MODE=framework-dependent"
-if /i "%~1"=="api"    set "API=%~2"
+if /i "%~1"=="small"    set "MODE=framework-dependent"
+if /i "%~1"=="portable" set "MODE=portable"
+if /i "%~1"=="api"      set "API=%~2"
 
 where dotnet >nul 2>nul
 if errorlevel 1 (
@@ -53,15 +58,20 @@ if not "%API%"=="" (
 )
 
 set "SELF=true"
+set "RID=-r win-x64"
 if "%MODE%"=="framework-dependent" set "SELF=false"
+if "%MODE%"=="portable" (
+  set "SELF=false"
+  set "RID="
+)
 
-echo -^> dotnet publish ^(%MODE%, win-x64, single file^)
+echo -^> dotnet publish ^(%MODE%, single file^)
 if exist dist rmdir /s /q dist
 if exist build.log del /q build.log
 
 dotnet publish Sanction.Loader\Sanction.Loader.csproj ^
   -c Release ^
-  -r win-x64 ^
+  %RID% ^
   --self-contained %SELF% ^
   -p:PublishSingleFile=true ^
   -p:IncludeNativeLibrariesForSelfExtract=true ^
@@ -82,9 +92,11 @@ findstr /c:"NETSDK1045" build.log >nul 2>nul && (
 )
 findstr /r /c:"NU1[0-9][0-9][0-9]" /c:"Unable to find package" /c:"nuget.org" build.log >nul 2>nul && (
   echo     NuGet - self-contained sborka kachaet runtime pack iz nuget.org.
-  echo             Nuzhna set' bez blokirovki nuget.org, libo offline-variant:
-  echo                 build.cmd small
-  echo             ^(~2 MB, no na mashine pol'zovatelya ponadobitsya .NET 8 Desktop Runtime^)
+  echo             Nuzhna set' bez blokirovki nuget.org, libo offline-varianty:
+  echo                 build.cmd portable   - voobshche bez obrashchenij k NuGet
+  echo                 build.cmd small      - tozhe bez runtime pack
+  echo             ^(oba dayut ~2 MB exe, no na mashine pol'zovatelya ponadobitsya
+  echo               .NET 8 Desktop Runtime^)
 )
 findstr /r /c:"error CS[0-9][0-9][0-9][0-9]" build.log >nul 2>nul && (
   echo     CS - oshibka kompilyacii v C#. Prishlite loader\build.log celikom.
