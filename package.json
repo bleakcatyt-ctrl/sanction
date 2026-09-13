@@ -12,7 +12,8 @@
     "reset": "node scripts/reset.js",
     "test": "node --test tests/",
     "loader:config": "node tools/embed-loader-config.js",
-    "loader:build": "node tools/embed-loader-config.js && cd loader && ./build.sh"
+    "loader:build": "node tools/embed-loader-config.js && cd loader && ./build.sh",
+    "smoke": "node scripts/smoke.js"
   },
   "engines": {
     "node": ">=22.5"

@@ -262,7 +262,11 @@ Cron раз в сутки + копия вне сервера. Восстанов
 
 ```bash
 curl -s https://sanction.example.com/api/health
+SMOKE_URL=https://sanction.example.com npm run smoke    # 40 проверок всего пути целиком
 ```
+
+`npm run smoke` создаёт одного тестового пользователя и два ключа — прогоняйте его на
+staging или сразу после деплоя, а не на боевой базе с живыми заказами.
 
 1. `/login` → `tiran` / `SEED_ADMIN_PASSWORD`.
 2. `/admin` → пароль гейта `ADMIN_GATE_PASSWORD`.
