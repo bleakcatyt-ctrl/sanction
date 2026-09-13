@@ -50,12 +50,15 @@ internal sealed class MainForm : Form
                  ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
 
         _api = new ApiClient(AppConfig.ApiBase, AppConfig.Version);
-        _api.OnLog += line => _dash.Log(line);
 
         _content = new Panel { Bounds = new Rectangle(0, TitleH, W, H - TitleH), BackColor = Theme.Bg };
 
         _auth = new AuthView { Dock = DockStyle.Fill };
         _dash = new DashboardView { Dock = DockStyle.Fill };
+
+        // Subscribed only after _dash exists: it is a readonly field and the
+        // compiler cannot prove it is assigned inside the lambda otherwise.
+        _api.OnLog += line => _dash.Log(line);
 
         _auth.LoginSubmitted += async (_, e) => await LoginAsync(e);
         _auth.OpenUrl += OpenSite;

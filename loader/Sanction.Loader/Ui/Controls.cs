@@ -159,6 +159,9 @@ internal sealed class TextField : Panel
 
     public event EventHandler? Submitted;
 
+    /// <summary>Raised after every edit, so hosts can clear error state live.</summary>
+    public event EventHandler? ValueChanged;
+
     public TextField()
     {
         SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint |
@@ -225,6 +228,8 @@ internal sealed class TextField : Panel
     }
 
     private Rectangle FieldBox => new(0, 22, Width, Height - 22);
+
+    private void OnValueChanged() => ValueChanged?.Invoke(this, EventArgs.Empty);
 
     private void SyncPlaceholder()
     {

@@ -13,9 +13,14 @@ namespace Sanction.Loader.Core;
 /// </summary>
 internal static class AppConfig
 {
+    /// <summary>
+    /// Directory of the running exe. Environment.ProcessPath is the only source
+    /// that survives a single-file publish: Assembly.Location is always an empty
+    /// string there (IL3000), which would resolve sanction.json against the
+    /// drive root instead of the loader folder.
+    /// </summary>
     public static string ExecutableDirectory { get; } =
-        Path.GetDirectoryName(Environment.ProcessPath ?? Assembly.GetEntryAssembly()?.Location) ??
-        AppContext.BaseDirectory;
+        Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
 
     public static string DataDirectory { get; } =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Sanction");
