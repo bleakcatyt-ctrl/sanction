@@ -1,0 +1,62 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<main class="auth-shell">
+  <div class="wrap-xs">
+    <div class="panel auth-card ticks reveal">
+      <div class="logo-row">
+        <div class="auth-lock"><%- icon('user') %></div>
+        <div>
+          <h1 class="center">Создать аккаунт</h1>
+          <p class="sub">После оплаты доступ появится здесь автоматически</p>
+        </div>
+      </div>
+
+      <form id="registerForm" novalidate>
+        <div class="field">
+          <label class="label" for="username">Логин</label>
+          <input class="input" id="username" name="username" autocomplete="username" required spellcheck="false" placeholder="3–24 символа, латиница и цифры">
+        </div>
+
+        <div class="field">
+          <label class="label" for="email">E-mail</label>
+          <input class="input" id="email" name="email" type="email" autocomplete="email" required spellcheck="false" placeholder="you@example.com">
+        </div>
+
+        <div class="field">
+          <label class="label" for="password">Пароль</label>
+          <div class="input-group">
+            <input class="input" id="password" name="password" type="password" autocomplete="new-password" required placeholder="Минимум 8 символов">
+            <button class="toggle-eye" type="button" aria-label="Показать пароль"><%- icon('eye') %></button>
+          </div>
+          <div class="meter" style="margin-top:9px"><i id="pwMeter" style="width:0%"></i></div>
+          <div class="hint" id="pwHint">Длина, цифры и символы делают пароль надёжнее.</div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="password2">Повторите пароль</label>
+          <input class="input" id="password2" name="password2" type="password" autocomplete="new-password" required placeholder="••••••••">
+        </div>
+
+        <label class="check" style="margin-top:16px">
+          <input type="checkbox" id="terms" required>
+          <span class="box"><%- icon('check') %></span>
+          <span class="txt">Я принимаю <a href="/terms" style="color:var(--ice)">условия использования</a> и понимаю, что лицензия привязывается к устройству.</span>
+        </label>
+
+        <div id="formError"></div>
+
+        <button class="btn btn-primary btn-block btn-lg" type="submit" id="submitBtn" style="margin-top:18px">
+          <%- icon('arrowRight') %> Зарегистрироваться
+        </button>
+      </form>
+
+      <div class="auth-alt">Уже есть аккаунт? <a href="/login">Войти</a></div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+<script src="/static/js/auth.js" defer></script>
+</body>
+</html>

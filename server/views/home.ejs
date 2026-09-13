@@ -1,0 +1,239 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<main>
+  <% if (site.announcement) { %>
+    <div class="wrap" style="padding-top:18px">
+      <div class="panel panel-flat reveal" style="padding:12px 18px;border-color:rgba(56,189,248,.26)">
+        <div class="row" style="gap:11px;flex-wrap:wrap">
+          <span class="chip chip-info"><%- icon('info') %> Объявление</span>
+          <span class="grow" style="font-size:13.4px;color:var(--text-2)"><%= site.announcement %></span>
+        </div>
+      </div>
+    </div>
+  <% } %>
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <div class="pill-status reveal">
+            <span class="dot <%= site.status === 'online' ? '' : 'warn' %>"></span>
+            <span><%= site.status_text || 'Сервис работает' %></span>
+            <span class="dim">·</span>
+            <span class="mono dim">build <%= config.build.latestVersion %></span>
+          </div>
+
+          <h1 class="reveal">
+            Доступ, который<br>
+            <span class="grad">выдаётся за секунды</span><br>
+            <span class="thin">и истекает точно в срок</span>
+          </h1>
+
+          <p class="lead reveal">
+            Единая база для сайта и лоадера: покупка подписки мгновенно создаёт лицензию,
+            пару логин/пароль и открывает загрузку. Привязка к железу, подпись лицензионного
+            токена и heartbeat-сессии — доступ живёт ровно столько, сколько оплачено.
+          </p>
+
+          <div class="hero-cta reveal">
+            <a href="/pricing" class="btn btn-primary btn-lg"><%- icon('zap') %> Выбрать тариф</a>
+            <a href="/status" class="btn btn-ghost btn-lg"><%- icon('activity') %> Статус и аптайм</a>
+          </div>
+
+          <div class="hero-stats reveal">
+            <div class="hero-stat">
+              <div class="n"><%= stats.active %></div>
+              <div class="l">Активных лицензий</div>
+            </div>
+            <div class="hero-stat">
+              <div class="n">30 · 90 · 180</div>
+              <div class="l">Дней подписки</div>
+            </div>
+            <div class="hero-stat">
+              <div class="n">ECDH&nbsp;P-256</div>
+              <div class="l">Шифрование канала</div>
+            </div>
+            <div class="hero-stat">
+              <div class="n">60&nbsp;с</div>
+              <div class="l">Интервал heartbeat</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal">
+          <div class="mock ticks">
+            <div class="mock-glow"></div>
+            <div class="mock-bar">
+              <span class="dots"><i></i><i></i><i></i></span>
+              <span class="t">sanction.loader — session</span>
+              <span class="t" style="margin-left:auto;color:#6ee7b7">secured</span>
+            </div>
+            <div class="mock-body">
+              <div class="mock-row">
+                <span class="k"><%- icon('fingerprint') %> hardware id</span>
+                <span class="v">A7F3·91C2·4E08·D65B</span>
+              </div>
+              <div class="mock-row">
+                <span class="k"><%- icon('key') %> license</span>
+                <span class="v" style="color:#6ee7b7">SANCTION-90 · valid</span>
+              </div>
+              <div class="mock-row">
+                <span class="k"><%- icon('clock') %> expires</span>
+                <span class="v">62d 14h 09m</span>
+              </div>
+              <div class="mock-row">
+                <span class="k"><%- icon('lock') %> channel</span>
+                <span class="v">AES-256-GCM · P-256</span>
+              </div>
+              <div class="mock-row">
+                <span class="k"><%- icon('shield') %> integrity</span>
+                <span class="v" style="color:#6ee7b7">signature ok</span>
+              </div>
+
+              <div class="mock-progress"><i></i></div>
+              <div class="mock-btn">Проверка лицензии</div>
+
+              <div class="row" style="gap:8px;margin-top:16px;justify-content:center">
+                <span class="chip chip-mono"><%- icon('server') %> api · 41 ms</span>
+                <span class="chip chip-mono chip-ok"><%- icon('check') %> hwid bound</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap"><div class="marquee-line"></div></div>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="sec-hd center reveal">
+        <span class="eyebrow center"><%- icon('layers') %> Архитектура</span>
+        <h2>Всё, что нужно для контроля доступа</h2>
+        <p>Сайт, биллинг и лоадер работают от одной базы. Ни одно решение не принимается на стороне клиента — сервер всегда первоисточник.</p>
+      </div>
+
+      <div class="grid feature-grid">
+        <% const features = [
+          { i:'key', t:'Ключи и подписки', d:'30, 90 и 180 дней. Ключ создаётся в момент оплаты, продление добавляет дни к остатку, истечение закрывает доступ автоматически.' },
+          { i:'fingerprint', t:'Привязка по HWID', d:'Одна лицензия — одно устройство. Отпечаток железа нормализуется в SHA-256, сбросы лимитированы тарифом и кулдауном.' },
+          { i:'lock', t:'Шифрованный канал', d:'Каждая сессия поднимает собственный ECDH P-256, дальше весь трафик идёт в AES-256-GCM со счётчиком пакетов и проверкой времени.' },
+          { i:'shield', t:'Подписанные лицензии', d:'Лицензионный токен подписан ECDSA на сервере и проверяется встроенным публичным ключом — подделать его локально нельзя.' },
+          { i:'activity', t:'Heartbeat и отзыв', d:'Клиент отмечает присутствие каждые 60 секунд. Отзыв ключа, бан или истечение разрывают сессию на ближайшем heartbeat.' },
+          { i:'sliders', t:'Гранулярные права', d:'Админ-панель выдаёт доступ по отдельным правам: только ключи, только платежи, только HWID — без лишней власти.' }
+        ] %>
+        <% features.forEach(function (f, idx) { %>
+          <article class="feature ticks reveal" style="transition-delay:<%= idx * 55 %>ms">
+            <span class="idx">0<%= idx + 1 %></span>
+            <div class="feature-ic"><%- icon(f.i) %></div>
+            <h3><%= f.t %></h3>
+            <p><%= f.d %></p>
+          </article>
+        <% }) %>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="wrap">
+      <div class="panel panel-flat ticks" style="padding:44px 34px">
+        <div class="sec-hd center reveal" style="margin-bottom:38px">
+          <span class="eyebrow center"><%- icon('terminal') %> Как это работает</span>
+          <h2>От оплаты до запуска — четыре шага</h2>
+        </div>
+        <div class="steps">
+          <% const steps = [
+            { i:'card', n:'01', t:'Оплата', d:'Карты РФ, СБП или крипта. Вебхук шлюза подтверждает платёж и подписью защищает от подделки.' },
+            { i:'key', n:'02', t:'Выдача доступа', d:'База создаёт лицензию, логин и пароль лоадера. Всё сразу видно в личном кабинете.' },
+            { i:'download', n:'03', t:'Загрузка', d:'Ссылка на сборку выдаётся только действующей лицензии и живёт несколько минут.' },
+            { i:'fingerprint', n:'04', t:'Первый запуск', d:'Лоадер шлёт отпечаток железа, сервер привязывает лицензию и запускает отсчёт дней.' }
+          ] %>
+          <% steps.forEach(function (s, idx) { %>
+            <div class="step reveal" style="transition-delay:<%= idx * 70 %>ms">
+              <span class="num"><%= s.n %></span>
+              <div class="step-n"><%- icon(s.i) %></div>
+              <h4><%= s.t %></h4>
+              <p><%= s.d %></p>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="sec-hd center reveal">
+        <span class="eyebrow center"><%- icon('ticket') %> Тарифы</span>
+        <h2>Подписка на 30, 90 или 180 дней</h2>
+        <p>Один и тот же набор возможностей, разница только в сроке и количестве сбросов HWID.</p>
+      </div>
+
+      <div class="grid price-grid">
+        <% plans.forEach(function (p, idx) { %>
+          <article class="plan ticks reveal <%= p.badge === 'popular' ? 'popular' : '' %>" style="transition-delay:<%= idx * 70 %>ms">
+            <% if (p.badge) { %><span class="plan-badge <%= p.badge === 'value' ? 'value' : '' %>"><%= p.badge === 'popular' ? 'Выбирают чаще' : 'Выгодно' %></span><% } %>
+            <span class="plan-days"><%= p.days %> дней</span>
+            <h3 class="plan-name"><%= p.name %></h3>
+            <div class="plan-sub"><%= p.subtitle %></div>
+            <div class="plan-price">
+              <span class="cur"><%= p.price_label %></span>
+              <% if (p.old_price_label) { %><span class="old"><%= p.old_price_label %></span><% } %>
+            </div>
+            <div class="plan-per"><%= p.per_day %> ₽ в день · продление складывается с остатком</div>
+            <ul class="plan-feats">
+              <% p.features.forEach(function (f) { %>
+                <li><%- icon('check') %> <%= f %></li>
+              <% }) %>
+            </ul>
+            <a href="/pricing#<%= p.id %>" class="btn <%= p.badge === 'popular' ? 'btn-primary' : 'btn-ghost' %> btn-block">Оформить доступ</a>
+          </article>
+        <% }) %>
+      </div>
+    </div>
+  </section>
+
+  <% if (stats.posts && stats.posts.length) { %>
+  <section class="section-tight">
+    <div class="wrap">
+      <div class="row-between reveal" style="margin-bottom:26px">
+        <div>
+          <span class="eyebrow"><%- icon('history') %> Последние записи</span>
+          <h2 style="font-size:clamp(22px,3vw,30px);margin-top:12px">Что нового</h2>
+        </div>
+        <a href="/news" class="btn btn-ghost btn-sm">Все обновления <%- icon('arrowRight') %></a>
+      </div>
+      <div class="grid post-grid">
+        <% stats.posts.forEach(function (p, idx) { %>
+          <a class="post-card ticks reveal" href="/news/<%= p.slug %>" style="transition-delay:<%= idx * 60 %>ms">
+            <span class="chip chip-info"><%= p.tag %></span>
+            <h4><%= p.title %></h4>
+            <p><%= p.body %></p>
+            <div class="date"><%= util.formatDate(p.created_at) %></div>
+          </a>
+        <% }) %>
+      </div>
+    </div>
+  </section>
+  <% } %>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="cta-band ticks reveal">
+        <div style="position:relative;z-index:1">
+          <h2>Готовы начать?</h2>
+          <p>Регистрация занимает меньше минуты. После оплаты доступ появляется в кабинете автоматически — ждать подтверждения не нужно.</p>
+        </div>
+        <div class="row" style="position:relative;z-index:1;flex-wrap:wrap">
+          <a href="/pricing" class="btn btn-primary btn-lg"><%- icon('zap') %> Купить доступ</a>
+          <% if (!user) { %><a href="/register" class="btn btn-ghost btn-lg"><%- icon('user') %> Создать аккаунт</a><% } %>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/footer') %>
+</body>
+</html>

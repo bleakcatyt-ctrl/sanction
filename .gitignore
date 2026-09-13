@@ -1,0 +1,30 @@
+# --- runtime ------------------------------------------------------------
+data/
+!data/.gitkeep
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+.env
+.env.local
+
+# --- node ---------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# --- loader build output (.NET) -----------------------------------------
+loader/bin/
+loader/obj/
+loader/*/bin/
+loader/*/obj/
+loader/dist/
+*.user
+.vs/
+.idea/
+
+# --- test output --------------------------------------------------------
+tests/out/
+coverage/
+.tmp/
+*.log

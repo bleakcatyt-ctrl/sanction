@@ -1,0 +1,54 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<main class="auth-shell">
+  <div class="wrap-xs">
+    <div class="panel auth-card ticks reveal">
+      <div class="logo-row">
+        <div class="auth-lock"><%- icon('lock') %></div>
+        <div>
+          <h1 class="center">Панель управления</h1>
+          <p class="sub">Второй фактор: пароль администратора</p>
+        </div>
+      </div>
+
+      <div class="panel panel-flat" style="padding:13px 15px;margin-bottom:20px">
+        <div class="row" style="gap:11px">
+          <span class="chip chip-info"><%- icon('user') %> <%= user.username %></span>
+          <span class="grow muted" style="font-size:12.4px">Вы вошли. Для доступа к панели нужен отдельный пароль — он действует только в этой сессии.</span>
+        </div>
+      </div>
+
+      <form id="gateForm" novalidate>
+        <div class="field">
+          <label class="label" for="gate">Пароль администратора</label>
+          <div class="input-group">
+            <input class="input input-mono" id="gate" type="password" autocomplete="off" required placeholder="••••••••••••••••" spellcheck="false">
+            <button class="toggle-eye" type="button" aria-label="Показать"><%- icon('eye') %></button>
+          </div>
+        </div>
+
+        <div id="formError"></div>
+
+        <button class="btn btn-primary btn-block btn-lg" type="submit" id="submitBtn" style="margin-top:18px">
+          <%- icon('unlock') %> Открыть панель
+        </button>
+      </form>
+
+      <div class="auth-alt">
+        <a href="/dashboard"><%- icon('arrowRight') %> Вернуться в личный кабинет</a>
+      </div>
+
+      <div class="divider" style="margin:20px 0 14px"></div>
+      <p class="hint center" style="font-size:11.6px">
+        Право <span class="kbd mono">panel.access</span> уже есть у вашего аккаунта.
+        Пароль панели задаётся переменной <span class="kbd mono">ADMIN_GATE_PASSWORD</span>.
+      </p>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+<script src="/static/js/gate.js" defer></script>
+</body>
+</html>

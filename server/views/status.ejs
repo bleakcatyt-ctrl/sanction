@@ -1,0 +1,74 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<main class="section-tight" style="padding-top:48px">
+  <div class="wrap">
+    <div class="sec-hd reveal" style="margin-bottom:30px">
+      <span class="eyebrow"><%- icon('activity') %> Статус сервиса</span>
+      <h2>Все системы в одном месте</h2>
+      <p>Состояние сайта, API лоадера, выдачи сборок и приёма платежей обновляется на каждом запросе.</p>
+    </div>
+
+    <%
+      const chipFor = (s) => s === 'operational' ? 'chip-ok' : (s === 'sandbox' ? 'chip-warn' : 'chip-err');
+      const labelFor = (s) => ({ operational: 'Работает', degraded: 'Ограничен', unavailable: 'Недоступно', sandbox: 'Тестовый режим' })[s] || s;
+      const services = [
+        { n: 'Сайт и личный кабинет', s: info.site === 'online' ? 'operational' : (info.site === 'maintenance' ? 'degraded' : 'unavailable'), d: info.site_text || 'Приём заказов и выдача доступа', i: 'globe' },
+        { n: 'API лоадера', s: info.loader_api === 'degraded' ? 'degraded' : 'operational', d: info.loader_api === 'degraded' ? 'Включён kill switch — сессии не выдаются' : 'Рукопожатие, авторизация и heartbeat', i: 'terminal' },
+        { n: 'Выдача сборок', s: info.downloads, d: info.downloads === 'operational' ? 'Артефакт доступен к загрузке' : 'Артефакт не загружен на сервер', i: 'download' },
+        { n: 'Приём платежей', s: info.payments, d: info.payments === 'operational' ? 'Подключены боевые шлюзы' : 'Работает только песочница', i: 'card' }
+      ];
+    %>
+
+    <div class="grid status-grid" style="grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px">
+      <div class="panel ticks reveal">
+        <div class="panel-hd"><h3>Компоненты</h3><div class="sub">Проверено только что</div></div>
+        <div class="panel-bd" style="padding:8px 20px">
+          <% services.forEach(function (s) { %>
+            <div class="mock-row" style="padding:16px 0">
+              <span class="k" style="font-size:13.4px;color:var(--text)">
+                <%- icon(s.i) %> <%= s.n %>
+              </span>
+              <span class="row" style="gap:10px">
+                <span class="dim" style="font-size:12.2px"><%= s.d %></span>
+                <span class="chip <%= chipFor(s.s) %>"><span class="dot <%= s.s === 'operational' ? '' : (s.s === 'sandbox' ? 'warn' : 'err') %>"></span> <%= labelFor(s.s) %></span>
+              </span>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+
+      <div class="grid" style="gap:20px">
+        <div class="panel ticks reveal">
+          <div class="panel-hd"><h3>Метрики</h3></div>
+          <div class="panel-bd">
+            <div class="kv">
+              <dt>Активная сборка</dt><dd class="mono">v<%= info.build %></dd>
+              <dt>Онлайн в лоадере</dt><dd class="mono"><%= info.online %></dd>
+              <dt>Действующих лицензий</dt><dd class="mono"><%= info.active %></dd>
+              <dt>Heartbeat</dt><dd class="mono">60 сек</dd>
+              <dt>Шифрование</dt><dd class="mono">AES-256-GCM</dd>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel ticks reveal">
+          <div class="panel-hd"><h3>Последние записи</h3></div>
+          <div class="panel-bd" style="padding:10px 20px">
+            <% info.recent.forEach(function (p) { %>
+              <a class="mock-row" href="/news/<%= p.slug %>" style="display:flex">
+                <span class="k" style="font-size:13px;color:var(--text-2)"><%- icon('file') %> <%= p.title %></span>
+                <span class="v dim"><%= util.formatDate(p.created_at).slice(0, 11) %></span>
+              </a>
+            <% }) %>
+            <% if (!info.recent.length) { %><div class="empty" style="padding:24px"><p>Записей пока нет.</p></div><% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+</body>
+</html>

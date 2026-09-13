@@ -1,0 +1,10 @@
+{
+  "name": "SANCTION",
+  "short_name": "SANCTION",
+  "description": "Private access infrastructure",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#04070e",
+  "theme_color": "#04070e",
+  "icons": []
+}

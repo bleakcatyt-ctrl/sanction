@@ -1,0 +1,41 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<main class="section-tight" style="padding-top:48px">
+  <div class="wrap">
+    <div class="sec-hd reveal" style="margin-bottom:30px">
+      <span class="eyebrow"><%- icon('history') %> Журнал изменений</span>
+      <h2>Обновления платформы</h2>
+      <p>Сборки лоадера, изменения в политике HWID, платёжных шлюзах и сроках подписки.</p>
+    </div>
+
+    <% if (!posts.length) { %>
+      <div class="panel ticks empty">
+        <%- icon('file') %>
+        <h4>Записей пока нет</h4>
+        <p>Как только выйдет обновление, оно появится здесь и в личном кабинете.</p>
+      </div>
+    <% } %>
+
+    <div class="grid" style="gap:14px">
+      <% posts.forEach(function (p, idx) { %>
+        <a class="panel ticks reveal" href="/news/<%= p.slug %>" style="padding:22px 24px;display:block;transition-delay:<%= idx * 45 %>ms">
+          <div class="row" style="gap:10px;align-items:flex-start">
+            <span class="chip chip-info"><%= p.tag %></span>
+            <span class="grow"></span>
+            <span class="mono dim" style="font-size:11px"><%= util.formatDate(p.created_at) %></span>
+          </div>
+          <h3 style="font-size:18px;margin-top:12px;letter-spacing:-.028em"><%= p.title %></h3>
+          <p class="muted" style="font-size:13.6px;margin-top:8px;line-height:1.68"><%= p.body %></p>
+          <div class="row" style="margin-top:14px;color:var(--ice);font-size:12.6px;font-weight:560">
+            Читать <%- icon('arrowRight') %>
+          </div>
+        </a>
+      <% }) %>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+</body>
+</html>

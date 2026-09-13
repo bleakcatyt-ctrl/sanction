@@ -1,0 +1,27 @@
+{
+  "name": "sanction-platform",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "Sanction — license, billing and account platform for a desktop client (site + loader sync).",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "seed": "node scripts/seed.js",
+    "reset": "node scripts/reset.js",
+    "test": "node --test tests/",
+    "loader:config": "node tools/embed-loader-config.js",
+    "loader:build": "node tools/embed-loader-config.js && cd loader && ./build.sh"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "dependencies": {
+    "compression": "^1.7.5",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2"
+  }
+}

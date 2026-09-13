@@ -1,0 +1,72 @@
+<footer class="ftr">
+  <div class="wrap">
+    <div class="ftr-grid">
+      <div>
+        <a href="/" class="brand">
+          <span class="brand-mark"><%- icon('logo') %></span>
+          <span class="brand-text">
+            <span><%= site.title %></span>
+            <small><%= site.tagline %></small>
+          </span>
+        </a>
+        <p class="about">Инфраструктура приватного доступа: аккаунты, биллинг, выдача ключей и синхронизация с лоадером через единую базу. Подписки 30, 90 и 180 дней.</p>
+        <div class="socials" style="margin-top:18px">
+          <% if (site.discord) { %><a href="<%= site.discord %>" target="_blank" rel="noopener" title="Discord"><%- icon('discord') %></a><% } %>
+          <% if (site.telegram) { %><a href="<%= site.telegram %>" target="_blank" rel="noopener" title="Telegram"><%- icon('telegram') %></a><% } %>
+          <a href="mailto:<%= site.support %>" title="Поддержка"><%- icon('message') %></a>
+          <a href="/status" title="Статус"><%- icon('activity') %></a>
+        </div>
+      </div>
+
+      <div>
+        <h5>Продукт</h5>
+        <ul>
+          <li><a href="/pricing">Тарифы</a></li>
+          <li><a href="/status">Статус сервиса</a></li>
+          <li><a href="/news">Обновления</a></li>
+          <li><a href="/faq">Вопросы и ответы</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h5>Аккаунт</h5>
+        <ul>
+          <% if (user) { %>
+            <li><a href="/dashboard">Личный кабинет</a></li>
+            <li><a href="/dashboard#license">Моя лицензия</a></li>
+            <li><a href="/dashboard#orders">Заказы</a></li>
+            <% if (perms.includes('panel.access')) { %><li><a href="/admin">Панель управления</a></li><% } %>
+          <% } else { %>
+            <li><a href="/login">Вход</a></li>
+            <li><a href="/register">Регистрация</a></li>
+            <li><a href="/pricing">Купить доступ</a></li>
+          <% } %>
+        </ul>
+      </div>
+
+      <div>
+        <h5>Поддержка</h5>
+        <ul>
+          <li><a href="mailto:<%= site.support %>"><%= site.support %></a></li>
+          <li><a href="/faq#hwid">Сброс HWID</a></li>
+          <li><a href="/faq#expired">Продление доступа</a></li>
+          <li><a href="/terms">Условия использования</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ftr-bottom">
+      <span>&copy; <%= year %> <%= site.title %>. Все права защищены.</span>
+      <span class="row" style="gap:14px">
+        <span class="row" style="gap:7px">
+          <span class="dot <%= site.status === 'online' ? '' : (site.status === 'maintenance' ? 'warn' : 'err') %>"></span>
+          <%= site.status_text || 'Сервис работает' %>
+        </span>
+        <span class="mono">v<%= config.build.latestVersion %></span>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script src="/static/js/app.js" defer></script>

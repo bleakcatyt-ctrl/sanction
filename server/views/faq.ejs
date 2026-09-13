@@ -1,0 +1,31 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<main class="section-tight" style="padding-top:48px">
+  <div class="wrap-sm">
+    <div class="sec-hd center reveal" style="margin-bottom:28px">
+      <span class="eyebrow center"><%- icon('message') %> Поддержка</span>
+      <h2>Вопросы и ответы</h2>
+      <p>Не нашли ответ — напишите на <a href="mailto:<%= site.support %>" style="color:var(--ice)"><%= site.support %></a>.</p>
+    </div>
+
+    <div class="panel ticks reveal" style="padding:6px 24px">
+      <div class="faq">
+        <% faq.forEach(function (f, i) { %>
+          <div class="faq-item" id="<%= f.id %>">
+            <button class="faq-q" type="button">
+              <span class="n"><%= String(i + 1).padStart(2, '0') %></span>
+              <span class="grow"><%= f.q %></span>
+              <span class="chev"><%- icon('chevronDown') %></span>
+            </button>
+            <div class="faq-a"><div class="faq-a-in"><%= f.a %></div></div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+</body>
+</html>

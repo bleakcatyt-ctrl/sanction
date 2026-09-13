@@ -1,0 +1,33 @@
+<header class="hdr">
+  <div class="hdr-in">
+    <a href="/" class="brand" aria-label="<%= site.title %>">
+      <span class="brand-mark"><%- icon('logo') %></span>
+      <span class="brand-text">
+        <span><%= site.title %></span>
+        <small><%= site.tagline %></small>
+      </span>
+    </a>
+
+    <nav class="nav" id="nav">
+      <a href="/" class="<%= path === '/' ? 'active' : '' %>">Обзор</a>
+      <a href="/pricing" class="<%= path.startsWith('/pricing') ? 'active' : '' %>">Тарифы</a>
+      <a href="/status" class="<%= path === '/status' ? 'active' : '' %>">Статус</a>
+      <a href="/news" class="<%= path.startsWith('/news') ? 'active' : '' %>">Обновления</a>
+      <a href="/faq" class="<%= path === '/faq' ? 'active' : '' %>">FAQ</a>
+      <% if (user && (perms.includes('panel.access'))) { %>
+        <a href="/admin" class="<%= path.startsWith('/admin') ? 'active' : '' %>">Панель</a>
+      <% } %>
+    </nav>
+
+    <div class="hdr-cta">
+      <% if (user) { %>
+        <a href="/dashboard" class="btn btn-ghost btn-sm"><%- icon('user') %><span><%= user.username %></span></a>
+        <button class="btn btn-quiet btn-icon" id="logoutBtn" title="Выйти" aria-label="Выйти"><%- icon('logout') %></button>
+      <% } else { %>
+        <a href="/login" class="btn btn-quiet btn-sm"><%- icon('login') %><span>Вход</span></a>
+        <a href="/pricing" class="btn btn-primary btn-sm"><%- icon('zap') %><span>Купить доступ</span></a>
+      <% } %>
+      <button class="burger" id="burger" aria-label="Меню" aria-expanded="false"><%- icon('menu') %></button>
+    </div>
+  </div>
+</header>

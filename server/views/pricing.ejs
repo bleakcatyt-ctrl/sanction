@@ -1,0 +1,204 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<main>
+  <section class="section-tight" style="padding-top:56px">
+    <div class="wrap">
+      <div class="sec-hd center reveal" style="margin-bottom:34px">
+        <span class="eyebrow center"><%- icon('ticket') %> Тарифы</span>
+        <h2>Подписка 30 · 90 · 180 дней</h2>
+        <p>Оплата подтверждается вебхуком шлюза, после чего лицензия, логин и пароль лоадера появляются в личном кабинете автоматически. Продление добавляет дни к текущему остатку.</p>
+      </div>
+
+      <% if (site.announcement) { %>
+        <div class="panel panel-flat reveal" style="padding:13px 18px;margin-bottom:26px;border-color:rgba(56,189,248,.24)">
+          <div class="row" style="gap:11px">
+            <span class="chip chip-info"><%- icon('info') %> Объявление</span>
+            <span style="font-size:13.4px;color:var(--text-2)"><%= site.announcement %></span>
+          </div>
+        </div>
+      <% } %>
+
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 356px;gap:24px;align-items:start" class="pricing-layout">
+        <div class="grid price-grid" id="planGrid">
+          <% plans.forEach(function (p, idx) { %>
+            <article class="plan ticks reveal <%= p.badge === 'popular' ? 'popular' : '' %>" id="<%= p.id %>" data-plan="<%= p.code %>" data-days="<%= p.days %>" data-price="<%= p.price %>" style="transition-delay:<%= idx * 60 %>ms;cursor:pointer">
+              <% if (p.badge) { %><span class="plan-badge <%= p.badge === 'value' ? 'value' : '' %>"><%= p.badge === 'popular' ? 'Выбирают чаще' : 'Выгодно' %></span><% } %>
+              <span class="plan-days"><%= p.days %> дней</span>
+              <h3 class="plan-name"><%= p.name %></h3>
+              <div class="plan-sub"><%= p.subtitle %></div>
+              <div class="plan-price">
+                <span class="cur"><%= p.price_label %></span>
+                <% if (p.old_price_label) { %><span class="old"><%= p.old_price_label %></span><% } %>
+              </div>
+              <div class="plan-per"><%= p.per_day %> ₽ в день</div>
+              <ul class="plan-feats">
+                <% p.features.forEach(function (f) { %>
+                  <li><%- icon('check') %> <%= f %></li>
+                <% }) %>
+              </ul>
+              <button class="btn <%= p.badge === 'popular' ? 'btn-primary' : 'btn-ghost' %> btn-block" type="button" data-select="<%= p.code %>">
+                <%- icon('zap') %> Выбрать <%= p.days %> дней
+              </button>
+            </article>
+          <% }) %>
+        </div>
+
+        <aside class="panel ticks reveal" style="position:sticky;top:calc(var(--hdr) + 22px)" id="checkoutCard">
+          <div class="panel-hd">
+            <span class="feature-ic" style="width:34px;height:34px;border-radius:10px"><%- icon('card') %></span>
+            <div>
+              <h3>Оформление</h3>
+              <div class="sub">Шаг 1 из 2 · заказ и оплата</div>
+            </div>
+          </div>
+
+          <div class="panel-bd">
+            <div class="field">
+              <label class="label" for="selPlan">Тариф</label>
+              <select class="select" id="selPlan">
+                <% plans.forEach(function (p) { %>
+                  <option value="<%= p.code %>" <%= p.badge === 'popular' ? 'selected' : '' %>><%= p.name %> — <%= p.price_label %></option>
+                <% }) %>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="label" for="coupon">Промокод</label>
+              <div class="row" style="gap:8px">
+                <input class="input input-mono grow" id="coupon" placeholder="Например SANCTION10" autocomplete="off" spellcheck="false">
+                <button class="btn btn-ghost btn-sm" type="button" id="couponBtn"><%- icon('ticket') %> Применить</button>
+              </div>
+              <div class="hint" id="couponHint">Необязательно. Скидка применяется к любому тарифу или к конкретному.</div>
+            </div>
+
+            <div class="divider" style="margin:18px 0"></div>
+
+            <div class="field">
+              <label class="label">Способ оплаты</label>
+              <div class="pay-methods" id="methods">
+                <% methods.forEach(function (m, i) { %>
+                  <label class="pay-method <%= m.ready || !m.requiresSetup ? '' : 'disabled' %>" title="<%= m.ready || !m.requiresSetup ? m.hint : 'Способ ещё не настроен администратором' %>">
+                    <input type="radio" name="method" value="<%= m.id %>" <%= (m.id === 'sandbox' || i === 0) && (m.ready || !m.requiresSetup) ? 'checked' : '' %>>
+                    <span class="radio"></span>
+                    <span class="ic"><%- icon(m.icon) %></span>
+                    <span class="txt">
+                      <b><%= m.label %></b>
+                      <small><%= m.ready || !m.requiresSetup ? m.hint : 'Не настроен' %></small>
+                    </span>
+                    <span class="fee"><%= m.fee %></span>
+                  </label>
+                <% }) %>
+              </div>
+            </div>
+
+            <div class="divider" style="margin:18px 0"></div>
+
+            <div class="order-sum">
+              <div class="line"><span>Тариф</span><span id="sumPlan" class="mono">—</span></div>
+              <div class="line"><span>Скидка</span><span id="sumDiscount" class="mono disc">—</span></div>
+              <div class="line"><span>Срок действия</span><span id="sumDays" class="mono">—</span></div>
+              <div class="line total"><span>К оплате</span><b id="sumTotal">—</b></div>
+            </div>
+
+            <button class="btn btn-primary btn-block btn-lg" type="button" id="payBtn" style="margin-top:20px">
+              <%- icon('lock') %> Перейти к оплате
+            </button>
+
+            <% if (!user) { %>
+              <div class="hint center" style="margin-top:12px">Потребуется вход в аккаунт — <a href="/login?next=/pricing" style="color:var(--ice)">войти</a> или <a href="/register" style="color:var(--ice)">создать</a>.</div>
+            <% } else { %>
+              <div class="hint center" style="margin-top:12px">Оплата проходит как <b class="mono"><%= user.username %></b>. После подтверждения доступ появится в кабинете.</div>
+            <% } %>
+          </div>
+
+          <div class="panel-ft" style="justify-content:center;gap:16px">
+            <span class="chip chip-mono"><%- icon('shield') %> SSL</span>
+            <span class="chip chip-mono"><%- icon('refresh') %> Автовыдача</span>
+            <span class="chip chip-mono"><%- icon('fingerprint') %> HWID</span>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="wrap">
+      <div class="panel ticks reveal" style="overflow:hidden">
+        <div class="panel-hd"><h3>Сравнение тарифов</h3><div class="sub">Возможности одинаковые, разница в сроке и лимитах</div></div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Параметр</th>
+                <% plans.forEach(function (p) { %><th><%= p.name %></th><% }) %>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>Срок действия</b></td>
+                <% plans.forEach(function (p) { %><td class="mono"><%= p.days %> дней</td><% }) %>
+              </tr>
+              <tr>
+                <td><b>Стоимость</b></td>
+                <% plans.forEach(function (p) { %><td class="mono"><%= p.price_label %></td><% }) %>
+              </tr>
+              <tr>
+                <td><b>Цена за день</b></td>
+                <% plans.forEach(function (p) { %><td class="mono"><%= p.per_day %> ₽</td><% }) %>
+              </tr>
+              <tr>
+                <td><b>Сбросов HWID</b></td>
+                <% plans.forEach(function (p) { %><td class="mono"><%= p.id === 'p30' ? 3 : (p.id === 'p90' ? 5 : 8) %></td><% }) %>
+              </tr>
+              <tr>
+                <td><b>Устройств одновременно</b></td>
+                <% plans.forEach(function () { %><td class="mono">1</td><% }) %>
+              </tr>
+              <tr>
+                <td><b>Приватный канал</b></td>
+                <% plans.forEach(function (p) { %><td><span class="chip <%= p.id === 'p30' ? 'chip-mute' : 'chip-ok' %>"><%- icon(p.id === 'p30' ? 'x' : 'check') %></span></td><% }) %>
+              </tr>
+              <tr>
+                <td><b>Ранние сборки</b></td>
+                <% plans.forEach(function (p) { %><td><span class="chip <%= p.id === 'p180' ? 'chip-ok' : 'chip-mute' %>"><%- icon(p.id === 'p180' ? 'check' : 'x') %></span></td><% }) %>
+              </tr>
+              <tr>
+                <td><b>Продление складывается с остатком</b></td>
+                <% plans.forEach(function () { %><td><span class="chip chip-ok"><%- icon('check') %></span></td><% }) %>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="wrap-sm">
+      <div class="sec-hd center reveal">
+        <span class="eyebrow center"><%- icon('message') %> Вопросы</span>
+        <h2>Что спрашивают чаще всего</h2>
+      </div>
+      <div class="panel ticks reveal" style="padding:6px 22px">
+        <div class="faq">
+          <% faq.forEach(function (f, i) { %>
+            <div class="faq-item" id="<%= f.id %>">
+              <button class="faq-q" type="button">
+                <span class="n"><%= String(i + 1).padStart(2, '0') %></span>
+                <span class="grow"><%= f.q %></span>
+                <span class="chev"><%- icon('chevronDown') %></span>
+              </button>
+              <div class="faq-a"><div class="faq-a-in"><%= f.a %></div></div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/footer') %>
+<script src="/static/js/pricing.js" defer></script>
+</body>
+</html>

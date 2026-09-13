@@ -1,0 +1,72 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<main class="section-tight" style="padding-top:44px">
+  <div class="wrap-sm">
+    <div class="row" style="gap:9px;margin-bottom:18px;justify-content:center">
+      <span class="chip chip-warn"><%- icon('flask') %> Песочница</span>
+      <span class="chip chip-mute chip-mono">заказ <%= order.public_id %></span>
+    </div>
+
+    <div class="panel ticks reveal">
+      <div class="panel-hd">
+        <span class="feature-ic" style="width:34px;height:34px;border-radius:10px"><%- icon('card') %></span>
+        <div>
+          <h3>Подтверждение тестовой оплаты</h3>
+          <div class="sub">Этот экран имитирует страницу платёжного шлюза</div>
+        </div>
+      </div>
+
+      <div class="panel-bd">
+        <div class="grid" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-bottom:20px" id="sbxGrid">
+          <div class="cred-item">
+            <div class="k"><%- icon('ticket') %> Тариф</div>
+            <div class="v" style="font-size:15px"><%= plan.name %></div>
+            <div class="hint"><%= plan.days %> дней · <%= plan.code %></div>
+          </div>
+          <div class="cred-item">
+            <div class="k"><%- icon('card') %> К оплате</div>
+            <div class="v" style="font-size:20px;background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent"><%= amount_label %></div>
+            <% if (order.discount) { %><div class="hint" style="color:var(--ok)">скидка <%= util.money(order.discount, order.currency) %> · промокод <%= order.coupon_code %></div><% } %>
+          </div>
+        </div>
+
+        <div class="kv" style="margin-bottom:20px">
+          <dt>Получатель</dt><dd class="mono"><%= order.public_id %></dd>
+          <dt>Плательщик</dt><dd><%= user.username %> · <%= user.email %></dd>
+          <dt>Способ</dt><dd><span class="chip chip-mono chip-mute"><%- icon('flask') %> sandbox</span></dd>
+          <dt>Срок счёта</dt><dd><%= util.formatDate(order.expires_at) %></dd>
+        </div>
+
+        <% if (order.status === 'paid') { %>
+          <div class="panel panel-flat" style="padding:16px;border-color:rgba(52,211,153,.3)">
+            <div class="row" style="gap:11px">
+              <span class="chip chip-ok"><%- icon('checkCircle') %> Уже оплачен</span>
+              <span class="grow muted" style="font-size:13px">Заказ подтверждён, лицензия выдана.</span>
+              <a class="btn btn-primary btn-sm" href="/checkout/result/<%= order.public_id %>">К результату <%- icon('arrowRight') %></a>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="row" style="gap:10px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-lg grow" id="confirmPay" data-pid="<%= order.public_id %>" data-sign="<%= sign %>">
+              <%- icon('check') %> Подтвердить оплату
+            </button>
+            <button class="btn btn-danger" id="failPay" data-pid="<%= order.public_id %>" data-sign="<%= sign %>">
+              <%- icon('x') %> Симулировать отказ
+            </button>
+          </div>
+          <p class="hint" style="margin-top:14px">
+            Подтверждение уходит на тот же обработчик, что и боевой вебхук шлюза: заказ помечается оплаченным,
+            создаётся лицензия с логином и паролем лоадера, а в кабинете появляется загрузка.
+            Подпись привязана к номеру заказа, поэтому чужой заказ подтвердить нельзя.
+          </p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+<script src="/static/js/sandbox.js" defer></script>
+</body>
+</html>

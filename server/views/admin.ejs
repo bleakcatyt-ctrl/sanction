@@ -1,0 +1,69 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<main>
+  <div class="adm">
+    <aside class="adm-side">
+      <div class="who">
+        <span class="av"><%= user.username.slice(0, 1).toUpperCase() %></span>
+        <span class="grow">
+          <b><%= user.username %></b>
+          <small><%= user.role %></small>
+        </span>
+        <button class="btn btn-quiet btn-icon" id="gateExit" title="Закрыть панель" style="width:28px;height:28px"><%- icon('lock') %></button>
+      </div>
+
+      <nav class="adm-nav" id="admNav">
+        <span class="grp">Обзор</span>
+        <a href="#dashboard" data-sec="dashboard" data-perm="system.stats"><%- icon('gauge') %> Дашборд</a>
+
+        <span class="grp">Клиенты</span>
+        <a href="#users" data-sec="users" data-perm="users.view"><%- icon('users') %> Пользователи</a>
+        <a href="#licenses" data-sec="licenses" data-perm="licenses.view"><%- icon('key') %> Лицензии и ключи</a>
+        <a href="#hwid" data-sec="hwid" data-perm="hwid.view"><%- icon('fingerprint') %> HWID</a>
+
+        <span class="grp">Деньги</span>
+        <a href="#orders" data-sec="orders" data-perm="orders.view"><%- icon('card') %> Заказы</a>
+        <a href="#coupons" data-sec="coupons" data-perm="coupons.manage"><%- icon('ticket') %> Промокоды</a>
+
+        <span class="grp">Лоадер</span>
+        <a href="#loader" data-sec="loader" data-perm="loader.view"><%- icon('terminal') %> Сессии и сборки</a>
+
+        <span class="grp">Система</span>
+        <a href="#content" data-sec="content" data-perm="content.posts"><%- icon('file') %> Контент</a>
+        <a href="#settings" data-sec="settings" data-perm="content.settings"><%- icon('settings') %> Настройки</a>
+        <a href="#audit" data-sec="audit" data-perm="audit.view"><%- icon('history') %> Журнал событий</a>
+      </nav>
+
+      <div class="divider"></div>
+      <div class="row" style="gap:8px;flex-wrap:wrap;padding:0 4px">
+        <a class="btn btn-quiet btn-sm" href="/dashboard"><%- icon('user') %> Кабинет</a>
+        <a class="btn btn-quiet btn-sm" href="/" target="_blank" rel="noopener"><%- icon('external') %> Сайт</a>
+      </div>
+      <div class="hint" style="padding:12px 6px 0;font-size:11px">
+        Прав выдано: <b class="mono"><%= permissions.length %></b>
+      </div>
+    </aside>
+
+    <div class="adm-main">
+      <div class="adm-top">
+        <div>
+          <div class="crumb">admin / <span id="crumbSec">dashboard</span></div>
+          <h1 id="secTitle">Дашборд</h1>
+        </div>
+        <div class="spacer"></div>
+        <div class="adm-tools" id="secTools"></div>
+      </div>
+
+      <div id="secHost">
+        <div class="empty"><div class="spinner-ring"></div></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+<script nonce="<%= nonce %>">window.SNC.perms = <%- JSON.stringify(permissions) %>;</script>
+<script src="/static/js/admin.js" defer></script>
+</body>
+</html>

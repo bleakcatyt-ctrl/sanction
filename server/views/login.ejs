@@ -1,0 +1,52 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<main class="auth-shell">
+  <div class="wrap-xs">
+    <div class="panel auth-card ticks reveal">
+      <div class="logo-row">
+        <div class="auth-lock"><%- icon('login') %></div>
+        <div>
+          <h1 class="center">Вход в аккаунт</h1>
+          <p class="sub">Лицензии, заказы и загрузка лоадера</p>
+        </div>
+      </div>
+
+      <form id="loginForm" novalidate>
+        <input type="hidden" name="next" value="<%= typeof next !== 'undefined' ? next : '' %>">
+
+        <div class="field">
+          <label class="label" for="login">Логин или e-mail</label>
+          <input class="input" id="login" name="login" autocomplete="username" required spellcheck="false" placeholder="tiran">
+        </div>
+
+        <div class="field">
+          <label class="label" for="password">Пароль</label>
+          <div class="input-group">
+            <input class="input" id="password" name="password" type="password" autocomplete="current-password" required placeholder="••••••••">
+            <button class="toggle-eye" type="button" aria-label="Показать пароль"><%- icon('eye') %></button>
+          </div>
+        </div>
+
+        <div id="formError"></div>
+
+        <button class="btn btn-primary btn-block btn-lg" type="submit" id="submitBtn" style="margin-top:20px">
+          <%- icon('arrowRight') %> Войти
+        </button>
+      </form>
+
+      <div class="auth-alt">
+        <% if (site.signup_enabled) { %>
+          Нет аккаунта? <a href="/register">Создать за минуту</a>
+        <% } else { %>
+          Регистрация временно закрыта. Напишите в поддержку: <a href="mailto:<%= site.support %>"><%= site.support %></a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+<script src="/static/js/auth.js" defer></script>
+</body>
+</html>

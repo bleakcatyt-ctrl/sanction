@@ -1,0 +1,473 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<%
+  const lic = primary;
+  const statusChip = (s) => ({
+    active:   ['chip-ok',   'Активна',      'check'],
+    pending:  ['chip-info', 'Не активирована','clock'],
+    expired:  ['chip-err',  'Истекла',      'xCircle'],
+    revoked:  ['chip-err',  'Отозвана',     'ban'],
+    banned:   ['chip-err',  'Заблокирована','ban']
+  })[s] || ['chip-mute', s, 'info'];
+  const chip = lic ? statusChip(lic.status) : null;
+  const totalDays = lic ? lic.days : 0;
+  const usedPct = lic && lic.expires_at && lic.activated_at
+    ? Math.min(100, Math.max(0, Math.round((1 - (lic.expires_at - util.now()) / (lic.days * 86400000)) * 100)))
+    : 0;
+%>
+
+<main>
+  <div class="wrap">
+    <div class="dash">
+      <!-- ---------------------------------------------------------- nav -->
+      <nav class="dash-nav" id="dashNav">
+        <span class="grp">Кабинет</span>
+        <a href="#overview" data-tab="overview" class="active"><%- icon('gauge') %> Обзор</a>
+        <a href="#license" data-tab="license"><%- icon('key') %> Лицензия</a>
+        <a href="#orders" data-tab="orders"><%- icon('card') %> Заказы</a>
+        <a href="#notifications" data-tab="notifications"><%- icon('bell') %> Уведомления
+          <% if (unread) { %><span class="badge-n"><%= unread %></span><% } %>
+        </a>
+        <div class="sep"></div>
+        <span class="grp">Аккаунт</span>
+        <a href="#settings" data-tab="settings"><%- icon('settings') %> Настройки</a>
+        <a href="/pricing"><%- icon('ticket') %> Продлить доступ</a>
+        <% if (can_admin) { %>
+          <div class="sep"></div>
+          <span class="grp">Управление</span>
+          <a href="/admin"><%- icon('shield') %> Панель администратора</a>
+        <% } %>
+      </nav>
+
+      <!-- ------------------------------------------------------- content -->
+      <div style="min-width:0">
+        <div class="dash-hd">
+          <div>
+            <span class="eyebrow"><%- icon('user') %> Личный кабинет</span>
+            <h1 style="margin-top:10px">Привет, <%= user.username %></h1>
+            <p>
+              <% if (lic && lic.status === 'active') { %>
+                Доступ активен до <b class="mono"><%= util.formatDate(lic.expires_at) %></b> · осталось <span data-countdown="<%= lic.expires_at %>" class="mono"></span>
+              <% } else if (lic && lic.status === 'pending') { %>
+                Лицензия выдана и ждёт первого запуска лоадера — отсчёт ещё не начался.
+              <% } else if (lic && lic.status === 'expired') { %>
+                Срок действия истёк <%= util.formatDate(lic.expires_at) %>. Продлите, чтобы восстановить доступ.
+              <% } else { %>
+                У вас пока нет активной лицензии. Выберите тариф — доступ выдаётся автоматически.
+              <% } %>
+            </p>
+          </div>
+          <div class="row" style="flex-wrap:wrap">
+            <% if (lic) { %><span class="chip <%= chip[0] %>"><%- icon(chip[2]) %> <%= chip[1] %></span><% } %>
+            <a href="/pricing" class="btn btn-primary btn-sm"><%- icon('zap') %> <%= lic && lic.status === 'active' ? 'Продлить' : 'Купить доступ' %></a>
+          </div>
+        </div>
+
+        <!-- ================================================== OVERVIEW -->
+        <section class="tab-panel active" id="tab-overview">
+          <div class="grid stat-grid" style="margin-bottom:20px">
+            <div class="stat ticks">
+              <div class="l"><%- icon('key') %> Статус доступа</div>
+              <div class="v <%= lic ? (lic.status === 'active' ? 'ok' : (lic.status === 'expired' ? 'err' : 'warn')) : 'err' %>"><%= lic ? chip[1] : 'Нет' %></div>
+              <div class="d"><%= lic ? 'Тариф ' + (config.planByCode[lic.plan_code] ? config.planByCode[lic.plan_code].name : lic.plan_code) : 'Выберите тариф на странице цен' %></div>
+            </div>
+            <div class="stat ticks">
+              <div class="l"><%- icon('clock') %> Осталось</div>
+              <div class="v"><%= lic && lic.expires_at ? '<span data-countdown="' + lic.expires_at + '"></span>' : '—' %></div>
+              <div class="d"><%= lic && lic.activated_at ? 'Отсчёт идёт с ' + util.formatDate(lic.activated_at) : 'Отсчёт начнётся с первого запуска' %></div>
+            </div>
+            <div class="stat ticks">
+              <div class="l"><%- icon('fingerprint') %> Устройство</div>
+              <div class="v" style="font-size:16px;font-family:var(--f-mono);letter-spacing:0"><%= lic && lic.hwid ? lic.hwid.slice(0, 16).toUpperCase() : 'не привязано' %></div>
+              <div class="d"><%= lic ? 'Сбросов осталось: ' + lic.hwid_resets_left : '—' %></div>
+            </div>
+            <div class="stat ticks">
+              <div class="l"><%- icon('box') %> Сборка</div>
+              <div class="v" style="font-size:18px">v<%= loader_build %></div>
+              <div class="d"><%= artifact_available ? 'Доступна к загрузке' : 'Артефакт не загружен' %></div>
+            </div>
+          </div>
+
+          <div class="grid" style="grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px" id="dashOverviewGrid">
+            <!-- quick actions / credential preview -->
+            <div class="panel ticks cred-card">
+              <div class="glow"></div>
+              <div class="panel-hd">
+                <span class="feature-ic" style="width:34px;height:34px;border-radius:10px"><%- icon('download') %></span>
+                <div class="grow">
+                  <h3>Быстрый старт</h3>
+                  <div class="sub">Данные для входа в лоадер и загрузка сборки</div>
+                </div>
+                <% if (lic && lic.usable) { %>
+                  <button class="btn btn-primary btn-sm" id="dlBtn" data-license="<%= lic.id %>"><%- icon('download') %> Скачать лоадер</button>
+                <% } %>
+              </div>
+              <div class="panel-bd">
+                <% if (lic) { %>
+                  <div class="cred-grid">
+                    <div class="cred-item">
+                      <div class="k"><%- icon('user') %> Логин лоадера</div>
+                      <div class="v" id="ovLogin"><%= lic.loader_login %></div>
+                      <div class="cred-actions">
+                        <button class="btn btn-quiet btn-sm" data-copy data-copy-value="<%= lic.loader_login %>"><%- icon('copy') %> Копировать</button>
+                      </div>
+                    </div>
+                    <div class="cred-item">
+                      <div class="k"><%- icon('lock') %> Пароль лоадера</div>
+                      <div class="v masked" id="ovPass" data-license="<%= lic.id %>">••••••••••••</div>
+                      <div class="cred-actions">
+                        <button class="btn btn-quiet btn-sm" id="ovReveal"><%- icon('eye') %> Показать</button>
+                        <button class="btn btn-quiet btn-sm" id="ovCopyPass"><%- icon('copy') %> Копировать</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="margin-top:18px">
+                    <div class="row-between" style="margin-bottom:8px">
+                      <span class="label" style="margin:0">Использовано срока</span>
+                      <span class="mono dim" style="font-size:11.6px"><%= usedPct %>% · <%= lic.days %> дней всего</span>
+                    </div>
+                    <div class="meter <%= usedPct > 85 ? 'err' : (usedPct > 65 ? 'warn' : '') %>"><i style="width:<%= usedPct %>%"></i></div>
+                  </div>
+
+                  <ol style="margin-top:20px;display:grid;gap:11px;counter-reset:s">
+                    <% [
+                      ['Скачайте лоадер', 'Кнопка выше или раздел «Лицензия». Ссылка живёт несколько минут.'],
+                      ['Запустите и войдите', 'Используйте логин и пароль из этой карточки — не данные сайта.'],
+                      ['Дождитесь проверки', 'Лоадер пришлёт отпечаток железа и получит подписанный токен лицензии.']
+                    ].forEach(function (st, i) { %>
+                      <li class="row" style="gap:12px;align-items:flex-start">
+                        <span class="step-n" style="width:26px;height:26px;border-radius:8px;font-family:var(--f-mono);font-size:11px;color:var(--ice)"><%= i + 1 %></span>
+                        <span>
+                          <b style="font-size:13.2px;display:block"><%= st[0] %></b>
+                          <span class="muted" style="font-size:12.4px"><%= st[1] %></span>
+                        </span>
+                      </li>
+                    <% }) %>
+                  </ol>
+                <% } else { %>
+                  <div class="empty" style="padding:34px 10px">
+                    <%- icon('key') %>
+                    <h4>Лицензии пока нет</h4>
+                    <p>После оплаты здесь появятся лицензионный ключ, логин и пароль лоадера, а также кнопка загрузки.</p>
+                    <a href="/pricing" class="btn btn-primary btn-sm" style="margin-top:18px"><%- icon('zap') %> Выбрать тариф</a>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+
+            <!-- notifications preview -->
+            <div class="panel ticks">
+              <div class="panel-hd">
+                <h3>Уведомления</h3>
+                <div class="grow"></div>
+                <a href="#notifications" class="btn btn-quiet btn-sm" data-goto-tab="notifications">Все</a>
+              </div>
+              <div class="panel-bd" style="padding:14px 16px;max-height:420px;overflow:auto">
+                <% if (!notifications.length) { %>
+                  <div class="empty" style="padding:30px 10px"><%- icon('bell') %><p>Пока тихо. Здесь появятся события по лицензии и заказам.</p></div>
+                <% } %>
+                <% notifications.slice(0, 6).forEach(function (n) { %>
+                  <div class="notif <%= n.seen ? '' : 'unread' %>">
+                    <div class="notif-ic <%= n.kind === 'success' ? 'ok' : (n.kind === 'warning' ? 'warn' : (n.kind === 'error' ? 'err' : '')) %>">
+                      <%- icon(n.kind === 'success' ? 'checkCircle' : (n.kind === 'warning' ? 'alert' : (n.kind === 'error' ? 'xCircle' : 'info'))) %>
+                    </div>
+                    <div class="grow">
+                      <h5><%= n.title %></h5>
+                      <p><%= n.body %></p>
+                      <time><%= util.formatDate(n.created_at) %></time>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            </div>
+          </div>
+
+          <% if (orderList.length) { %>
+            <div class="panel ticks" style="margin-top:20px">
+              <div class="panel-hd">
+                <h3>Последние заказы</h3>
+                <div class="grow"></div>
+                <a href="#orders" class="btn btn-quiet btn-sm" data-goto-tab="orders">Все заказы</a>
+              </div>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead><tr><th>Заказ</th><th>Тариф</th><th>Способ</th><th>Сумма</th><th>Статус</th><th>Дата</th></tr></thead>
+                  <tbody>
+                    <% orderList.slice(0, 5).forEach(function (o) { %>
+                      <tr>
+                        <td class="mono"><b><%= o.public_id %></b></td>
+                        <td><%= o.plan_code %></td>
+                        <td><span class="chip chip-mute chip-mono"><%= o.method %></span></td>
+                        <td class="mono"><%= util.money(o.amount, o.currency) %></td>
+                        <td><span class="chip <%= o.status === 'paid' ? 'chip-ok' : (o.status === 'failed' || o.status === 'refunded' ? 'chip-err' : (o.status === 'cancelled' || o.status === 'expired' ? 'chip-mute' : 'chip-warn')) %>"><%= ({created:'создан',pending:'ожидает оплаты',paid:'оплачен',failed:'ошибка',refunded:'возврат',cancelled:'отменён',expired:'истёк'})[o.status] || o.status %></span></td>
+                        <td class="mono dim" style="font-size:12px"><%= util.formatDate(o.created_at) %></td>
+                      </tr>
+                    <% }) %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          <% } %>
+        </section>
+
+        <!-- =================================================== LICENSE -->
+        <section class="tab-panel" id="tab-license">
+          <% if (!lic) { %>
+            <div class="panel ticks empty">
+              <%- icon('key') %>
+              <h4>Лицензий нет</h4>
+              <p>Выберите тариф на странице цен. После подтверждения оплаты ключ, логин и пароль лоадера появятся в этом разделе автоматически.</p>
+              <a href="/pricing" class="btn btn-primary btn-sm" style="margin-top:18px"><%- icon('zap') %> Выбрать тариф</a>
+            </div>
+          <% } %>
+
+          <% licenses.forEach(function (l) { const c = statusChip(l.status); %>
+            <div class="panel ticks cred-card" style="margin-bottom:20px" data-license-card="<%= l.id %>">
+              <div class="glow"></div>
+              <div class="panel-hd">
+                <span class="feature-ic" style="width:36px;height:36px;border-radius:11px"><%- icon('key') %></span>
+                <div class="grow">
+                  <h3><%= config.planByCode[l.plan_code] ? config.planByCode[l.plan_code].name : l.plan_code %> · <%= l.days %> дней</h3>
+                  <div class="sub mono">выдана <%= util.formatDate(l.created_at) %></div>
+                </div>
+                <span class="chip <%= c[0] %>"><%- icon(c[2]) %> <%= c[1] %></span>
+              </div>
+
+              <div class="panel-bd">
+                <div class="cred-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+                  <div class="cred-item">
+                    <div class="k"><%- icon('key') %> Лицензионный ключ</div>
+                    <div class="v"><%= l.license_key %></div>
+                    <div class="cred-actions">
+                      <button class="btn btn-quiet btn-sm" data-copy data-copy-value="<%= l.license_key %>"><%- icon('copy') %> Копировать</button>
+                    </div>
+                  </div>
+                  <div class="cred-item">
+                    <div class="k"><%- icon('user') %> Логин лоадера</div>
+                    <div class="v"><%= l.loader_login %></div>
+                    <div class="cred-actions">
+                      <button class="btn btn-quiet btn-sm" data-copy data-copy-value="<%= l.loader_login %>"><%- icon('copy') %> Копировать</button>
+                    </div>
+                  </div>
+                  <div class="cred-item">
+                    <div class="k"><%- icon('lock') %> Пароль лоадера</div>
+                    <div class="v masked" data-pass-for="<%= l.id %>">••••••••••••</div>
+                    <div class="cred-actions">
+                      <button class="btn btn-quiet btn-sm" data-reveal="<%= l.id %>"><%- icon('eye') %> Показать</button>
+                      <button class="btn btn-quiet btn-sm" data-copy-pass="<%= l.id %>"><%- icon('copy') %> Копировать</button>
+                    </div>
+                  </div>
+                  <div class="cred-item">
+                    <div class="k"><%- icon('clock') %> Действует до</div>
+                    <div class="v" style="font-size:14px"><%= l.expires_at ? util.formatDate(l.expires_at) : 'отсчёт не начат' %></div>
+                    <div class="cred-actions">
+                      <span class="chip chip-mono chip-mute"><%- icon('history') %> <span data-countdown="<%= l.expires_at || 0 %>">—</span></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="grid" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px" id="licSplit">
+                  <div>
+                    <h4 style="font-size:12.6px;letter-spacing:.02em;color:var(--text-2);display:flex;align-items:center;gap:8px;margin-bottom:12px"><%- icon('fingerprint') %> Привязка к устройству</h4>
+                    <div class="kv">
+                      <dt>HWID</dt><dd class="mono"><%= l.hwid ? l.hwid.slice(0, 24).toUpperCase() + '…' : 'не привязано' %></dd>
+                      <dt>Название</dt><dd><%= l.hwid_label || '—' %></dd>
+                      <dt>Привязано</dt><dd><%= l.hwid_bound_at ? util.formatDate(l.hwid_bound_at) : '—' %></dd>
+                      <dt>Сбросов осталось</dt><dd class="mono"><%= l.hwid_resets_left %></dd>
+                      <dt>Последний сброс</dt><dd><%= l.hwid_reset_at ? util.formatDate(l.hwid_reset_at) : '—' %></dd>
+                    </div>
+                    <div class="row" style="margin-top:14px;gap:9px;flex-wrap:wrap">
+                      <button class="btn btn-ghost btn-sm" data-hwid-reset="<%= l.id %>"><%- icon('refresh') %> Сбросить HWID</button>
+                      <span class="chip chip-mute chip-mono">кулдаун 72 ч</span>
+                    </div>
+                    <% if (l.reset_available && !l.reset_available.ok && l.reset_available.message) { %>
+                      <div class="hint" style="color:var(--warn);margin-top:9px"><%= l.reset_available.message %></div>
+                    <% } %>
+                  </div>
+
+                  <div>
+                    <h4 style="font-size:12.6px;letter-spacing:.02em;color:var(--text-2);display:flex;align-items:center;gap:8px;margin-bottom:12px"><%- icon('server') %> Активность</h4>
+                    <div class="kv">
+                      <dt>Последний вход</dt><dd><%= l.last_seen_at ? util.formatDate(l.last_seen_at) : 'ещё не запускался' %></dd>
+                      <dt>Версия лоадера</dt><dd class="mono"><%= l.loader_version || '—' %></dd>
+                      <dt>Устройств разрешено</dt><dd class="mono"><%= l.max_devices %></dd>
+                      <dt>Статус</dt><dd><span class="chip <%= c[0] %>"><%= c[1] %></span></dd>
+                      <% if (l.revoked_reason) { %><dt>Причина</dt><dd class="mono" style="color:#fda4af"><%= l.revoked_reason %></dd><% } %>
+                    </div>
+                    <div class="row" style="margin-top:14px;gap:9px;flex-wrap:wrap">
+                      <% if (l.usable) { %>
+                        <button class="btn btn-primary btn-sm" data-download="<%= l.id %>"><%- icon('download') %> Скачать лоадер</button>
+                      <% } %>
+                      <a href="/pricing" class="btn btn-ghost btn-sm"><%- icon('zap') %> Продлить</a>
+                    </div>
+                  </div>
+                </div>
+
+                <% if (l.status === 'expired') { %>
+                  <div class="panel panel-flat" style="margin-top:18px;padding:14px 16px;border-color:rgba(251,113,133,.26)">
+                    <div class="row" style="gap:11px;align-items:flex-start">
+                      <span class="chip chip-err"><%- icon('alert') %> Доступ закрыт</span>
+                      <span class="grow muted" style="font-size:13px">Срок лицензии истёк <%= util.formatDate(l.expires_at) %>. Лоадер не пустит никого до продления, а сессия отзывается автоматически. Продление запустит новый срок с момента оплаты.</span>
+                      <a href="/pricing" class="btn btn-primary btn-sm">Продлить</a>
+                    </div>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          <% }) %>
+        </section>
+
+        <!-- ==================================================== ORDERS -->
+        <section class="tab-panel" id="tab-orders">
+          <div class="panel ticks">
+            <div class="panel-hd">
+              <h3>История заказов</h3>
+              <div class="sub">Оплаты, статусы и выданные лицензии</div>
+              <div class="grow"></div>
+              <a href="/pricing" class="btn btn-ghost btn-sm"><%- icon('plus') %> Новый заказ</a>
+            </div>
+            <% if (!orderList.length) { %>
+              <div class="empty"><%- icon('card') %><h4>Заказов пока нет</h4><p>Оформите подписку — заказ и лицензия появятся здесь сразу после оплаты.</p></div>
+            <% } else { %>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead><tr><th>Заказ</th><th>Тариф</th><th>Способ</th><th>Скидка</th><th>Сумма</th><th>Статус</th><th>Создан</th><th>Оплачен</th><th></th></tr></thead>
+                  <tbody>
+                    <% orderList.forEach(function (o) { %>
+                      <tr>
+                        <td class="mono"><b><%= o.public_id %></b></td>
+                        <td><%= o.plan_code %></td>
+                        <td><span class="chip chip-mute chip-mono"><%= o.method %></span></td>
+                        <td class="mono"><%= o.discount ? '−' + util.money(o.discount, o.currency) : '—' %></td>
+                        <td class="mono"><b><%= util.money(o.amount, o.currency) %></b></td>
+                        <td><span class="chip <%= o.status === 'paid' ? 'chip-ok' : (o.status === 'failed' || o.status === 'refunded' ? 'chip-err' : (o.status === 'cancelled' || o.status === 'expired' ? 'chip-mute' : 'chip-warn')) %>"><%= ({created:'создан',pending:'ожидает оплаты',paid:'оплачен',failed:'ошибка',refunded:'возврат',cancelled:'отменён',expired:'истёк'})[o.status] || o.status %></span></td>
+                        <td class="mono dim" style="font-size:12px"><%= util.formatDate(o.created_at) %></td>
+                        <td class="mono dim" style="font-size:12px"><%= o.paid_at ? util.formatDate(o.paid_at) : '—' %></td>
+                        <td class="actions">
+                          <% if (o.status === 'paid') { %>
+                            <a class="btn btn-quiet btn-sm" href="/checkout/result/<%= o.public_id %>"><%- icon('eye') %></a>
+                          <% } else if (o.status === 'pending' || o.status === 'created') { %>
+                            <% if (o.checkout_url) { %><a class="btn btn-ghost btn-sm" href="<%= o.checkout_url %>"><%- icon('card') %> Оплатить</a><% } %>
+                            <button class="btn btn-quiet btn-sm" data-cancel-order="<%= o.public_id %>" title="Отменить заказ"><%- icon('x') %></button>
+                          <% } %>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  </tbody>
+                </table>
+              </div>
+            <% } %>
+          </div>
+        </section>
+
+        <!-- ==================================================== NOTIFS -->
+        <section class="tab-panel" id="tab-notifications">
+          <div class="panel ticks">
+            <div class="panel-hd">
+              <h3>Уведомления</h3>
+              <div class="grow"></div>
+              <button class="btn btn-quiet btn-sm" id="markAllRead"><%- icon('check') %> Прочитать все</button>
+            </div>
+            <div class="panel-bd" id="notifList">
+              <% if (!notifications.length) { %>
+                <div class="empty"><%- icon('bell') %><h4>Пусто</h4><p>События по лицензиям, заказам и сбросам HWID будут приходить сюда.</p></div>
+              <% } %>
+              <% notifications.forEach(function (n) { %>
+                <div class="notif <%= n.seen ? '' : 'unread' %>" data-notif="<%= n.id %>">
+                  <div class="notif-ic <%= n.kind === 'success' ? 'ok' : (n.kind === 'warning' ? 'warn' : (n.kind === 'error' ? 'err' : '')) %>">
+                    <%- icon(n.kind === 'success' ? 'checkCircle' : (n.kind === 'warning' ? 'alert' : (n.kind === 'error' ? 'xCircle' : 'info'))) %>
+                  </div>
+                  <div class="grow">
+                    <h5><%= n.title %></h5>
+                    <p><%= n.body %></p>
+                    <time><%= util.formatDate(n.created_at) %></time>
+                  </div>
+                  <% if (n.link) { %><a class="btn btn-quiet btn-sm" href="<%= n.link %>"><%- icon('arrowRight') %></a><% } %>
+                </div>
+              <% }) %>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================== SETTINGS -->
+        <section class="tab-panel" id="tab-settings">
+          <div class="grid" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px" id="settingsGrid">
+            <div class="panel ticks">
+              <div class="panel-hd"><h3>Профиль</h3><div class="sub">Логин и почта аккаунта</div></div>
+              <div class="panel-bd">
+                <form id="profileForm">
+                  <div class="field">
+                    <label class="label" for="pUsername">Логин</label>
+                    <input class="input" id="pUsername" value="<%= user.username %>" spellcheck="false">
+                  </div>
+                  <div class="field">
+                    <label class="label" for="pEmail">E-mail</label>
+                    <input class="input" id="pEmail" type="email" value="<%= user.email %>" spellcheck="false">
+                  </div>
+                  <div class="field">
+                    <label class="label">Роль и доступ</label>
+                    <div class="row" style="gap:8px;flex-wrap:wrap">
+                      <span class="chip chip-mono"><%- icon('shield') %> <%= user.role %></span>
+                      <% if (can_admin) { %><a class="chip chip-info" href="/admin"><%- icon('sliders') %> Панель администратора</a><% } %>
+                      <span class="chip chip-mute chip-mono">с нами с <%= util.formatDate(user.created_at).slice(0, 12) %></span>
+                    </div>
+                  </div>
+                  <button class="btn btn-primary btn-sm" type="submit" style="margin-top:8px"><%- icon('check') %> Сохранить</button>
+                </form>
+              </div>
+            </div>
+
+            <div class="panel ticks">
+              <div class="panel-hd"><h3>Пароль</h3><div class="sub">После смены другие сессии закрываются</div></div>
+              <div class="panel-bd">
+                <form id="passwordForm">
+                  <div class="field">
+                    <label class="label" for="curPass">Текущий пароль</label>
+                    <div class="input-group">
+                      <input class="input" id="curPass" type="password" autocomplete="current-password">
+                      <button class="toggle-eye" type="button" aria-label="Показать"><%- icon('eye') %></button>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="label" for="newPass">Новый пароль</label>
+                    <input class="input" id="newPass" type="password" autocomplete="new-password" placeholder="минимум 8 символов">
+                  </div>
+                  <div class="field">
+                    <label class="label" for="newPass2">Повторите</label>
+                    <input class="input" id="newPass2" type="password" autocomplete="new-password">
+                  </div>
+                  <button class="btn btn-primary btn-sm" type="submit" style="margin-top:8px"><%- icon('lock') %> Сменить пароль</button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel ticks" style="margin-top:20px">
+            <div class="panel-hd"><h3>Безопасность</h3></div>
+            <div class="panel-bd">
+              <div class="kv" style="grid-template-columns:190px minmax(0,1fr)">
+                <dt>Последний вход</dt><dd><%= user.last_login_at ? util.formatDate(user.last_login_at) : '—' %></dd>
+                <dt>Активных сессий</dt><dd class="mono" id="sessCount">—</dd>
+                <dt>Пароль лоадера</dt><dd>Отдельный от пароля сайта. Хранится в базе в зашифрованном виде и проверяется по хешу scrypt.</dd>
+                <dt>Привязка</dt><dd>Лицензия работает только на устройстве, чей отпечаток зафиксирован сервером.</dd>
+              </div>
+              <div class="row" style="margin-top:16px;gap:9px;flex-wrap:wrap">
+                <button class="btn btn-ghost btn-sm" id="logoutEverywhere"><%- icon('logout') %> Завершить другие сессии</button>
+                <button class="btn btn-danger btn-sm" id="logoutBtn2"><%- icon('power') %> Выйти</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+<script src="/static/js/dashboard.js" defer></script>
+</body>
+</html>

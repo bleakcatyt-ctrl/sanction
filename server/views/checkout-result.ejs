@@ -1,0 +1,147 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<main class="section-tight" style="padding-top:44px">
+  <div class="wrap-sm">
+
+    <% if (order.status === 'paid' && license) { %>
+      <!-- ===================================================== SUCCESS -->
+      <div class="panel ticks reveal" style="overflow:hidden">
+        <div class="result-hero">
+          <div class="result-ic"><%- icon('checkCircle') %></div>
+          <h1>Оплата прошла</h1>
+          <p>
+            <% if (stacked) { %>
+              Срок продлён — дни добавлены к текущему остатку.
+            <% } else { %>
+              Лицензия создана и синхронизирована с лоадером. Данные ниже уже действуют.
+            <% } %>
+          </p>
+          <div class="row" style="gap:9px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+            <span class="chip chip-ok"><%- icon('check') %> заказ <%= order.public_id %></span>
+            <span class="chip chip-info"><%- icon('ticket') %> <%= plan.name %></span>
+            <span class="chip chip-mute chip-mono"><%= util.money(order.amount, order.currency) %></span>
+          </div>
+        </div>
+
+        <div style="padding:0 28px 28px">
+          <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:13px" id="resGrid">
+            <div class="cred-item">
+              <div class="k"><%- icon('key') %> Лицензионный ключ</div>
+              <div class="v"><%= license.license_key %></div>
+              <div class="cred-actions">
+                <button class="btn btn-quiet btn-sm" data-copy data-copy-value="<%= license.license_key %>"><%- icon('copy') %> Копировать</button>
+              </div>
+            </div>
+            <div class="cred-item">
+              <div class="k"><%- icon('user') %> Логин лоадера</div>
+              <div class="v"><%= license.loader.login %></div>
+              <div class="cred-actions">
+                <button class="btn btn-quiet btn-sm" data-copy data-copy-value="<%= license.loader.login %>"><%- icon('copy') %> Копировать</button>
+              </div>
+            </div>
+            <div class="cred-item">
+              <div class="k"><%- icon('lock') %> Пароль лоадера</div>
+              <div class="v"><%= license.loader.password %></div>
+              <div class="cred-actions">
+                <button class="btn btn-quiet btn-sm" data-copy data-copy-value="<%= license.loader.password %>"><%- icon('copy') %> Копировать</button>
+              </div>
+            </div>
+            <div class="cred-item">
+              <div class="k"><%- icon('clock') %> Действует</div>
+              <div class="v" style="font-size:14.6px">
+                <%= license.expires_at ? license.expires_label : 'отсчёт с первого запуска' %>
+              </div>
+              <div class="cred-actions">
+                <span class="chip chip-mono chip-mute"><%= license.days %> дней · осталось <span data-countdown="<%= license.expires_at || 0 %>">—</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel panel-flat" style="margin-top:20px;padding:16px 18px">
+            <div class="row" style="gap:12px;align-items:flex-start">
+              <span class="feature-ic" style="width:34px;height:34px;border-radius:10px;flex:none"><%- icon('info') %></span>
+              <span class="grow muted" style="font-size:13px;line-height:1.66">
+                Эти логин и пароль — <b style="color:var(--text)">не данные сайта</b>. Они используются только в лоадере
+                и хранятся в той же базе, к которой он обращается. Скопируйте их сейчас: пароль показывается в кабинете
+                в любое время, но лучше не держать его в открытом виде.
+              </span>
+            </div>
+          </div>
+
+          <div class="row" style="gap:10px;margin-top:20px;flex-wrap:wrap">
+            <% if (artifact_available) { %>
+              <button class="btn btn-primary btn-lg grow" data-download="<%= license.id %>" id="resDl">
+                <%- icon('download') %> Скачать лоадер
+              </button>
+            <% } else { %>
+              <button class="btn btn-ghost btn-lg grow" disabled title="Сборка ещё не загружена на сервер">
+                <%- icon('download') %> Сборка не загружена
+              </button>
+            <% } %>
+            <a href="/dashboard#license" class="btn btn-ghost btn-lg"><%- icon('key') %> В кабинет</a>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="kv">
+            <dt>Способ оплаты</dt><dd><span class="chip chip-mono chip-mute"><%= order.method %></span></dd>
+            <dt>Оплачен</dt><dd><%= util.formatDate(order.paid_at) %></dd>
+            <dt>Платёж в шлюзе</dt><dd class="mono dim"><%= order.gateway_payment_id || '—' %></dd>
+            <dt>Статус лицензии</dt><dd><span class="chip chip-ok"><%- icon('checkCircle') %> <%= license.status === 'pending' ? 'ждёт первого запуска' : 'активна' %></span></dd>
+          </div>
+        </div>
+      </div>
+
+    <% } else if (order.status === 'pending' || order.status === 'created') { %>
+      <!-- ====================================================== PENDING -->
+      <div class="panel ticks reveal" data-poll="<%= order.public_id %>">
+        <div class="result-hero">
+          <div class="result-ic pending"><div class="spinner-ring"></div></div>
+          <h1>Ждём подтверждения</h1>
+          <p>Заказ <b class="mono"><%= order.public_id %></b> создан. Как только шлюз пришлёт вебхук, страница обновится сама и покажет ваши данные для входа.</p>
+          <div class="row" style="gap:9px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+            <span class="chip chip-warn"><%- icon('clock') %> статус: ожидание</span>
+            <span class="chip chip-mute chip-mono"><%= util.money(order.amount, order.currency) %> · <%= order.method %></span>
+          </div>
+        </div>
+        <div style="padding:0 28px 28px">
+          <% if (order.checkout_url) { %>
+            <a class="btn btn-primary btn-block btn-lg" href="<%= order.checkout_url %>"><%- icon('external') %> Вернуться к оплате</a>
+          <% } %>
+          <p class="hint center" style="margin-top:14px">Проверяем статус каждые 3 секунды. Счёт действителен до <%= util.formatDate(order.expires_at) %>.</p>
+          <div class="row" style="gap:9px;justify-content:center;margin-top:18px">
+            <a href="/dashboard#orders" class="btn btn-ghost btn-sm"><%- icon('list') %> Мои заказы</a>
+            <button class="btn btn-quiet btn-sm" id="cancelHere"><%- icon('x') %> Отменить заказ</button>
+          </div>
+        </div>
+      </div>
+
+    <% } else { %>
+      <!-- ==================================================== PROBLEM -->
+      <div class="panel ticks reveal">
+        <div class="result-hero">
+          <div class="result-ic err"><%- icon('xCircle') %></div>
+          <h1>
+            <%= order.status === 'failed' ? 'Оплата не прошла' : (order.status === 'refunded' ? 'Оформлен возврат' : (order.status === 'cancelled' ? 'Заказ отменён' : 'Счёт истёк')) %>
+          </h1>
+          <p>
+            <% if (order.status === 'failed') { %>Шлюз отклонил платёж. Деньги не списаны — попробуйте другой способ оплаты.<% } %>
+            <% if (order.status === 'refunded') { %>Средства возвращены, лицензия отозвана.<% } %>
+            <% if (order.status === 'cancelled') { %>Заказ закрыт. Создайте новый, если передумали.<% } %>
+            <% if (order.status === 'expired') { %>Время счёта вышло. Создайте новый заказ.<% } %>
+          </p>
+          <div class="row" style="gap:9px;justify-content:center;margin-top:20px;flex-wrap:wrap">
+            <a href="/pricing" class="btn btn-primary"><%- icon('zap') %> Оформить заново</a>
+            <a href="mailto:<%= site.support %>" class="btn btn-ghost"><%- icon('message') %> Написать в поддержку</a>
+          </div>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+<script src="/static/js/result.js" defer></script>
+</body>
+</html>

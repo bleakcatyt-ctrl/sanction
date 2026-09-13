@@ -1,0 +1,35 @@
+<%- include('partials/head') %>
+
+<main class="auth-shell">
+  <div class="wrap-xs">
+    <div class="panel auth-card ticks" style="text-align:center">
+      <div class="logo-row">
+        <div class="auth-lock" style="background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.3);color:#fcd34d"><%- icon('settings') %></div>
+        <div>
+          <h1>Технические работы</h1>
+          <p class="sub"><%= site.maintenance_message %></p>
+        </div>
+      </div>
+
+      <div class="kv" style="text-align:left;margin:20px 0;grid-template-columns:120px 1fr">
+        <dt>Режим</dt><dd><span class="chip chip-warn"><span class="dot warn"></span> maintenance</span></dd>
+        <dt>Поддержка</dt><dd class="mono"><%= site.support %></dd>
+        <dt>Версия</dt><dd class="mono">v<%= config.build.latestVersion %></dd>
+      </div>
+
+      <p class="muted" style="font-size:13px;line-height:1.66">
+        Действующие лицензии не сгорают: срок приостанавливается на время работ.
+        Если лоадер не может соединиться — просто повторите запуск позже.
+      </p>
+
+      <div class="row" style="gap:9px;justify-content:center;margin-top:22px;flex-wrap:wrap">
+        <a href="/status" class="btn btn-ghost"><%- icon('activity') %> Статус</a>
+        <% if (user) { %><a href="/dashboard" class="btn btn-primary"><%- icon('user') %> В кабинет</a><% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+</body>
+</html>
