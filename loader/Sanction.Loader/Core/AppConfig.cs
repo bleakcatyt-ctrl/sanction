@@ -13,13 +13,6 @@ namespace Sanction.Loader.Core;
 /// </summary>
 internal static class AppConfig
 {
-    private static readonly JsonSerializerOptions Json = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true
-    };
-
     public static string ExecutableDirectory { get; } =
         Path.GetDirectoryName(Environment.ProcessPath ?? Assembly.GetEntryAssembly()?.Location) ??
         AppContext.BaseDirectory;

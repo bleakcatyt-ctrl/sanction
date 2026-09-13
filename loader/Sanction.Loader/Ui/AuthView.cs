@@ -1,3 +1,5 @@
+using Sanction.Loader.Core;
+
 namespace Sanction.Loader.Ui;
 
 internal sealed class LoginEventArgs : EventArgs
@@ -149,8 +151,8 @@ internal sealed class AuthView : Panel
         var w = Width - pad * 2;
 
         // heading
-        Theme.Text(g, "Вход в лоадер", Theme.Title, Theme.Text, new Rectangle(pad, 26, w, 30), ContentAlignment.MiddleLeft);
-        Theme.Text(g, "Логин и пароль выдаются после оплаты и видны в личном кабинете.",
+        Theme.DrawText(g, "Вход в лоадер", Theme.Title, Theme.Text, new Rectangle(pad, 26, w, 30), ContentAlignment.MiddleLeft);
+        Theme.DrawText(g, "Логин и пароль выдаются после оплаты и видны в личном кабинете.",
             Theme.Small, Theme.Muted, new Rectangle(pad, 58, w, 18), ContentAlignment.MiddleLeft);
 
         // separator
@@ -167,15 +169,15 @@ internal sealed class AuthView : Panel
             using var pen = new Pen(Theme.Alpha(Theme.Err, 90), 1f);
             g.DrawPath(pen, path);
             Glyphs.Warn(g, new RectangleF(box.X + 10, box.Y + 8, 17, 17), Theme.Err, 1.7f);
-            Theme.Text(g, _error, Theme.Small, Theme.Mix(Theme.Err, Theme.Text, .35f),
+            Theme.DrawText(g, _error, Theme.Small, Theme.Mix(Theme.Err, Theme.Text, .35f),
                 new Rectangle(box.X + 34, box.Y, box.Width - 44, box.Height), ContentAlignment.MiddleLeft);
         }
 
         // connection card
         var card = new Rectangle(pad, 366, w, 200);
-        Theme.Panel(g, card, Theme.Panel, Theme.Border, 14);
+        Theme.Card(g, card, Theme.Panel, Theme.Border, 14);
 
-        Theme.Text(g, "СОСТОЯНИЕ", Theme.SmallBold, Theme.Dim, new Rectangle(card.X + 16, card.Y + 12, 200, 18));
+        Theme.DrawText(g, "СОСТОЯНИЕ", Theme.SmallBold, Theme.Dim, new Rectangle(card.X + 16, card.Y + 12, 200, 18));
         var rowY = card.Y + 38;
         Row(g, card, ref rowY, "Сервер", _serverOnline ? $"{AppConfig.ApiBase}" : "недоступен",
             _serverOnline ? Theme.Muted : Theme.Err, mono: true);
@@ -186,22 +188,22 @@ internal sealed class AuthView : Panel
 
         using (var pen = new Pen(Theme.BorderSoft, 1f))
             g.DrawLine(pen, card.X + 16, card.Y + card.Height - 44, card.Right - 16, card.Y + card.Height - 44);
-        Theme.Text(g, _serverDetail, Theme.Small, Theme.Dim,
+        Theme.DrawText(g, _serverDetail, Theme.Small, Theme.Dim,
             new Rectangle(card.X + 16, card.Y + card.Height - 40, card.Width - 32, 30), ContentAlignment.MiddleLeft);
 
         // footer
-        Theme.Text(g, $"Sanction · сборка {AppConfig.Version} · канал {AppConfig.Channel}",
+        Theme.DrawText(g, $"Sanction · сборка {AppConfig.Version} · канал {AppConfig.Channel}",
             Theme.MonoSmall, Theme.Alpha(Theme.Dim, 190),
             new Rectangle(pad, Height - 34, w, 18), ContentAlignment.MiddleLeft);
         if (AppConfig.InsecureTransport)
-            Theme.Text(g, "незащищённый канал: локальный сервер", Theme.MonoSmall, Theme.Alpha(Theme.Warn, 210),
+            Theme.DrawText(g, "незащищённый канал: локальный сервер", Theme.MonoSmall, Theme.Alpha(Theme.Warn, 210),
                 new Rectangle(pad, Height - 34, w, 18), ContentAlignment.MiddleRight);
     }
 
     private static void Row(Graphics g, Rectangle card, ref int y, string label, string value, Color? color = null, bool mono = false)
     {
-        Theme.Text(g, label, Theme.Small, Theme.Dim, new Rectangle(card.X + 16, y, 110, 22), ContentAlignment.MiddleLeft);
-        Theme.Text(g, value, mono ? Theme.MonoSmall : Theme.Body, color ?? Theme.Text,
+        Theme.DrawText(g, label, Theme.Small, Theme.Dim, new Rectangle(card.X + 16, y, 110, 22), ContentAlignment.MiddleLeft);
+        Theme.DrawText(g, value, mono ? Theme.MonoSmall : Theme.Body, color ?? Theme.Text,
             new Rectangle(card.X + 126, y, card.Width - 142, 22), ContentAlignment.MiddleRight);
         y += 26;
     }

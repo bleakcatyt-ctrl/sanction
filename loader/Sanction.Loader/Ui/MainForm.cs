@@ -580,9 +580,9 @@ internal sealed class MainForm : Form
             g.DrawLine(pen, 0, TitleH, W, TitleH);
 
         Glyphs.Logo(g, new RectangleF(16, 13, 20, 20), 6f);
-        Theme.Text(g, "SANCTION", Theme.Wordmark, Theme.Text,
+        Theme.DrawText(g, "SANCTION", Theme.Wordmark, Theme.Text,
             new Rectangle(44, 0, 140, TitleH), ContentAlignment.MiddleLeft);
-        Theme.Text(g, AppConfig.Version, Theme.MonoSmall, Theme.Dim,
+        Theme.DrawText(g, AppConfig.Version, Theme.MonoSmall, Theme.Dim,
             new Rectangle(128, 0, 60, TitleH), ContentAlignment.MiddleLeft);
 
         var minHover = _titleHover == MinBox.Location;

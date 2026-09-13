@@ -89,7 +89,7 @@ internal static class Fmt
         return $"{dt.Day:00}.{dt.Month:00}.{dt.Year}";
     }
 
-    public static string DateTime(long? unixMs)
+    public static string DateFull(long? unixMs)
     {
         if (unixMs is null or <= 0) return "—";
         var dt = DateTimeOffset.FromUnixTimeMilliseconds(unixMs.Value).LocalDateTime;
@@ -99,7 +99,7 @@ internal static class Fmt
     public static string DateSeconds(long? unixSec)
     {
         if (unixSec is null or <= 0) return "—";
-        return DateTime(unixSec.Value * 1000);
+        return DateFull(unixSec.Value * 1000);
     }
 
     public static string Remaining(long ms)

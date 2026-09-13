@@ -77,7 +77,7 @@ internal static class Theme
         return path;
     }
 
-    public static void Panel(Graphics g, Rectangle r, Color fill, Color border, int radius = 12)
+    public static void Card(Graphics g, Rectangle r, Color fill, Color border, int radius = 12)
     {
         g.SmoothingMode = SmoothingMode.AntiAlias;
         using var path = Rounded(r, radius);
@@ -87,7 +87,7 @@ internal static class Theme
         g.DrawPath(pen, path);
     }
 
-    public static void Text(Graphics g, string text, Font font, Color color, Rectangle r,
+    public static void DrawText(Graphics g, string text, Font font, Color color, Rectangle r,
         ContentAlignment align = ContentAlignment.MiddleLeft)
     {
         var flags = TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix;

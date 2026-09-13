@@ -1,4 +1,5 @@
 using System.Drawing.Drawing2D;
+using Sanction.Loader.Core;
 
 namespace Sanction.Loader.Ui;
 
@@ -82,7 +83,7 @@ internal sealed class FlatButton : Control
 
         if (Busy)
         {
-            Theme.Text(g, Text, Theme.Button, text, r, ContentAlignment.MiddleCenter);
+            Theme.DrawText(g, Text, Theme.Button, text, r, ContentAlignment.MiddleCenter);
             return;
         }
 
@@ -100,7 +101,7 @@ internal sealed class FlatButton : Control
             x += glyphBox + gap;
         }
 
-        Theme.Text(g, label, Theme.Button, text,
+        Theme.DrawText(g, label, Theme.Button, text,
             new Rectangle(x, 0, Math.Max(1, Width - x), Height), ContentAlignment.MiddleLeft);
     }
 
@@ -250,7 +251,7 @@ internal sealed class TextField : Panel
         Theme.Quality(g);
 
         if (!string.IsNullOrEmpty(Caption))
-            Theme.Text(g, Caption, Theme.Small, Theme.Muted, new Rectangle(2, 2, Width - 4, 18), ContentAlignment.MiddleLeft);
+            Theme.DrawText(g, Caption, Theme.Small, Theme.Muted, new Rectangle(2, 2, Width - 4, 18), ContentAlignment.MiddleLeft);
 
         var box = new Rectangle(FieldBox.X, FieldBox.Y, FieldBox.Width - 1, FieldBox.Height - 1);
         var border = HasError ? Theme.Err
@@ -280,7 +281,7 @@ internal sealed class TextField : Panel
 
 internal sealed class GateRow : Control
 {
-    public Gate? Gate { get; set; }
+    public Gate? Model { get; set; }
 
     public GateRow()
     {
@@ -292,7 +293,7 @@ internal sealed class GateRow : Control
 
     public void Set(Gate gate)
     {
-        Gate = gate;
+        Model = gate;
         Invalidate();
     }
 
@@ -300,7 +301,7 @@ internal sealed class GateRow : Control
     {
         var g = e.Graphics;
         Theme.Quality(g);
-        var gate = Gate ?? new Gate("", "—", GateState.Wait, "ожидание");
+        var gate = Model ?? new Gate("", "—", GateState.Wait, "ожидание");
 
         var color = gate.State switch
         {
@@ -322,10 +323,10 @@ internal sealed class GateRow : Control
             default: Glyphs.Clock(g, iconBox, color, 1.6f); break;
         }
 
-        Theme.Text(g, gate.Label, Theme.Body, Theme.Text, new Rectangle(38, 0, 130, Height), ContentAlignment.MiddleLeft);
+        Theme.DrawText(g, gate.Label, Theme.Body, Theme.Text, new Rectangle(38, 0, 130, Height), ContentAlignment.MiddleLeft);
 
         var detailBox = new Rectangle(170, 0, Math.Max(20, Width - 180), Height);
-        Theme.Text(g, gate.Detail, Theme.MonoSmall, Theme.Mix(color, Theme.Muted, .45f), detailBox, ContentAlignment.MiddleRight);
+        Theme.DrawText(g, gate.Detail, Theme.MonoSmall, Theme.Mix(color, Theme.Muted, .45f), detailBox, ContentAlignment.MiddleRight);
     }
 }
 
@@ -408,7 +409,7 @@ internal sealed class Chip : Control
         using var pen = new Pen(Theme.Alpha(color, 70), 1f);
         g.DrawPath(pen, path);
 
-        Theme.Text(g, Text ?? string.Empty, Theme.SmallBold, color, r, ContentAlignment.MiddleCenter);
+        Theme.DrawText(g, Text ?? string.Empty, Theme.SmallBold, color, r, ContentAlignment.MiddleCenter);
     }
 }
 
@@ -467,12 +468,12 @@ internal sealed class LogView : Control
                         _lines[i].Contains("отказ", StringComparison.OrdinalIgnoreCase)
                 ? Theme.Mix(Theme.Err, Theme.Muted, .25f)
                 : Theme.Dim;
-            Theme.Text(g, _lines[i], Theme.MonoSmall, color, new Rectangle(10, y, Width - 20, lineH), ContentAlignment.MiddleLeft);
+            Theme.DrawText(g, _lines[i], Theme.MonoSmall, color, new Rectangle(10, y, Width - 20, lineH), ContentAlignment.MiddleLeft);
             y += lineH;
         }
 
         if (_lines.Count == 0)
-            Theme.Text(g, "журнал сессии", Theme.MonoSmall, Theme.Alpha(Theme.Dim, 150),
+            Theme.DrawText(g, "журнал сессии", Theme.MonoSmall, Theme.Alpha(Theme.Dim, 150),
                 new Rectangle(10, 7, Width - 20, lineH), ContentAlignment.MiddleLeft);
     }
 }
@@ -530,7 +531,7 @@ internal sealed class CheckToggle : Control
         }
         if (Checked) Glyphs.Check(g, new RectangleF(box.X + 3, box.Y + 3, 10, 10), Color.White, 1.9f);
 
-        Theme.Text(g, Text ?? string.Empty, Theme.Body, Checked ? Theme.Text : Theme.Muted,
+        Theme.DrawText(g, Text ?? string.Empty, Theme.Body, Checked ? Theme.Text : Theme.Muted,
             new Rectangle(24, 0, Width - 26, Height), ContentAlignment.MiddleLeft);
     }
 }
@@ -570,7 +571,7 @@ internal sealed class TextLink : Control
         Theme.Quality(g);
         var color = _hot ? Theme.Accent2 : Theme.Muted;
         var size = Theme.Measure(Text ?? string.Empty, Theme.Small);
-        Theme.Text(g, Text ?? string.Empty, Theme.Small, color, new Rectangle(0, 0, size.Width + 2, Height), ContentAlignment.MiddleLeft);
+        Theme.DrawText(g, Text ?? string.Empty, Theme.Small, color, new Rectangle(0, 0, size.Width + 2, Height), ContentAlignment.MiddleLeft);
 
         using var pen = new Pen(Theme.Alpha(color, _hot ? 200 : 90), 1f);
         var y = Height / 2 + 6;

@@ -190,22 +190,22 @@ internal sealed class DashboardView : Panel
 
     private void PaintSubscriptionCard(Graphics g, Rectangle card, LicenseInfo? lic)
     {
-        Theme.Panel(g, card, Theme.Panel, Theme.Border, 14);
+        Theme.Card(g, card, Theme.Panel, Theme.Border, 14);
 
         var planName = lic is null ? "Нет активной подписки" : PlanName(lic.Plan, lic.Days);
-        Theme.Text(g, planName, Theme.H2, Theme.Text, new Rectangle(card.X + 16, card.Y + 12, card.Width - 150, 24));
+        Theme.DrawText(g, planName, Theme.H2, Theme.Text, new Rectangle(card.X + 16, card.Y + 12, card.Width - 150, 24));
 
         if (lic is null)
         {
-            Theme.Text(g, "Войдите, чтобы получить данные лицензии.", Theme.Small, Theme.Muted,
+            Theme.DrawText(g, "Войдите, чтобы получить данные лицензии.", Theme.Small, Theme.Muted,
                 new Rectangle(card.X + 16, card.Y + 42, card.Width - 32, 20));
             return;
         }
 
         var expires = Fmt.Date(lic.ExpiresAt);
-        Theme.Text(g, $"действует до {expires}", Theme.Small, Theme.Muted,
+        Theme.DrawText(g, $"действует до {expires}", Theme.Small, Theme.Muted,
             new Rectangle(card.X + 16, card.Y + 40, 220, 20));
-        Theme.Text(g, Fmt.Remaining(lic.RemainingMs), Theme.Mono, Theme.Accent2,
+        Theme.DrawText(g, Fmt.Remaining(lic.RemainingMs), Theme.Mono, Theme.Accent2,
             new Rectangle(card.X + card.Width - 236, card.Y + 38, 220, 22), ContentAlignment.MiddleRight);
 
         var total = Math.Max(1, lic.Days * 86_400_000L);
@@ -213,17 +213,17 @@ internal sealed class DashboardView : Panel
         PaintBar(g, new Rectangle(card.X + 16, card.Y + 68, card.Width - 32, 6), progress);
 
         var features = lic.Features.Count > 0 ? string.Join(" · ", lic.Features) : "базовый набор";
-        Theme.Text(g, features, Theme.Small, Theme.Dim,
+        Theme.DrawText(g, features, Theme.Small, Theme.Dim,
             new Rectangle(card.X + 16, card.Y + 82, card.Width - 32, 18));
 
         var resets = $"{lic.HwidResetsLeft} {Fmt.Plural(lic.HwidResetsLeft, "сброс", "сброса", "сбросов")} HWID";
         var device = lic.HwidBound ? Machine.ShortId : "не привязан";
-        Theme.Text(g, $"{device} · {resets}", Theme.MonoSmall, Theme.Muted,
+        Theme.DrawText(g, $"{device} · {resets}", Theme.MonoSmall, Theme.Muted,
             new Rectangle(card.X + 16, card.Y + 102, card.Width - 32, 18));
 
         var token = _s.Claims;
         if (token is not null)
-            Theme.Text(g, $"токен {Fmt.Short(token.Jti, 10)} · до {Fmt.DateSeconds(token.Exp)}",
+            Theme.DrawText(g, $"токен {Fmt.Short(token.Jti, 10)} · до {Fmt.DateSeconds(token.Exp)}",
                 Theme.MonoSmall, Theme.Dim,
                 new Rectangle(card.X + 16, card.Y + 102, card.Width - 32, 18), ContentAlignment.MiddleRight);
     }
@@ -248,9 +248,9 @@ internal sealed class DashboardView : Panel
 
     private void PaintGatesHeader(Graphics g, Rectangle r)
     {
-        Theme.Text(g, "ЦЕПОЧКА ПРОВЕРОК", Theme.SmallBold, Theme.Dim, r, ContentAlignment.MiddleLeft);
+        Theme.DrawText(g, "ЦЕПОЧКА ПРОВЕРОК", Theme.SmallBold, Theme.Dim, r, ContentAlignment.MiddleLeft);
         var ready = _s.Gates.Count(x => x.State == GateState.Ok);
-        Theme.Text(g, $"{ready} / {_s.Gates.Count} пройдено", Theme.MonoSmall,
+        Theme.DrawText(g, $"{ready} / {_s.Gates.Count} пройдено", Theme.MonoSmall,
             _s.InjectReady ? Theme.Ok : Theme.Muted, r, ContentAlignment.MiddleRight);
     }
 
@@ -265,21 +265,21 @@ internal sealed class DashboardView : Panel
                 Tone.Err => Theme.Err,
                 _ => Theme.Muted
             };
-            Theme.Text(g, _notice, Theme.Small, color, r, ContentAlignment.MiddleCenter);
+            Theme.DrawText(g, _notice, Theme.Small, color, r, ContentAlignment.MiddleCenter);
             return;
         }
 
         var hint = _s.InjectReady
             ? (_s.Game is null ? "Все проверки пройдены." : $"Все проверки пройдены · {_s.Game.Name} PID {_s.Game.Pid}")
             : _s.InjectHint ?? "Inject заблокирован до завершения проверок.";
-        Theme.Text(g, hint, Theme.Small, Theme.Dim, r, ContentAlignment.MiddleCenter);
+        Theme.DrawText(g, hint, Theme.Small, Theme.Dim, r, ContentAlignment.MiddleCenter);
     }
 
     private void PaintFooter(Graphics g, Rectangle r)
     {
-        Theme.Text(g, $"сессия {Fmt.Short(_s.Payload?.Session?.Sid, 12)} · {AppConfig.Version} · {AppConfig.Channel}",
+        Theme.DrawText(g, $"сессия {Fmt.Short(_s.Payload?.Session?.Sid, 12)} · {AppConfig.Version} · {AppConfig.Channel}",
             Theme.MonoSmall, Theme.Alpha(Theme.Dim, 190), r, ContentAlignment.MiddleLeft);
-        Theme.Text(g, Machine.Description, Theme.MonoSmall, Theme.Alpha(Theme.Dim, 190), r, ContentAlignment.MiddleRight);
+        Theme.DrawText(g, Machine.Description, Theme.MonoSmall, Theme.Alpha(Theme.Dim, 190), r, ContentAlignment.MiddleRight);
     }
 
     private static string PlanName(string? plan, int days) => plan switch
