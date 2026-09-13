@@ -1,0 +1,125 @@
+name: Loader build
+
+# OPTIONAL CI build. To enable, copy this file to:
+#
+#     .github/workflows/loader.yml
+#
+# and push. It lives here because the automation token used for this checkout is
+# not allowed to create files under .github/workflows. Nothing else in the
+# repository depends on it — loader/build.cmd on Windows is the primary path.
+#
+# Builds Sanction.Loader.exe on a Windows runner so the artifact exists even on
+# machines without the .NET 8 SDK. Two variants are uploaded:
+#
+#   Sanction.Loader-win-x64          self-contained single file, no runtime needed
+#   Sanction.Loader-win-x64-small    framework-dependent, needs .NET 8 Desktop Runtime
+#
+# The API base URL and the server identity public key come from the committed
+# Core/BuildConfig.g.cs. For a different server, regenerate that file first
+# (npm run loader:config https://your-domain) and push, or pass api_base below —
+# the override only rewrites the URL, so it is limited to servers that share the
+# embedded identity key.
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_base:
+        description: 'Override API base URL (empty = use committed BuildConfig.g.cs)'
+        required: false
+        default: ''
+  push:
+    branches: [main, 'arena/**']
+    paths:
+      - 'loader/**'
+      - '.github/workflows/loader.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish win-x64
+    runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      API_BASE: ${{ inputs.api_base }}
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Toolchain
+        run: |
+          dotnet --info | Select-Object -First 12
+          Write-Host "MSBuild: $(dotnet --version)"
+
+      - name: Override API base (optional)
+        if: ${{ env.API_BASE != '' }}
+        shell: pwsh
+        run: |
+          $url = $env:API_BASE.TrimEnd('/')
+          if ($url -notmatch '^https?://') { throw "api_base must start with http:// or https://" }
+          $p = 'loader/Sanction.Loader/Core/BuildConfig.g.cs'
+          $t = Get-Content $p -Raw
+          $t = $t -replace 'public const string ApiBase = "[^"]*";', ('public const string ApiBase = "{0}";' -f $url)
+          $t = $t -replace '///   api base   .*', ('///   api base   {0}' -f $url)
+          Set-Content -Path $p -Value $t -NoNewline
+          Select-String -Path $p -Pattern 'ApiBase ='
+
+      - name: Show embedded config
+        shell: pwsh
+        run: Select-String -Path 'loader/Sanction.Loader/Core/BuildConfig.g.cs' -Pattern 'api base|key id|channel'
+
+      - name: Publish (self-contained)
+        run: >
+          dotnet publish loader/Sanction.Loader/Sanction.Loader.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true
+          -p:DebugType=none -p:DebugSymbols=false
+          -o loader/dist-full
+
+      - name: Publish (framework-dependent, small)
+        run: >
+          dotnet publish loader/Sanction.Loader/Sanction.Loader.csproj
+          -c Release -r win-x64 --self-contained false
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true
+          -p:DebugType=none -p:DebugSymbols=false
+          -o loader/dist-small
+
+      - name: Hashes and sizes
+        shell: pwsh
+        run: |
+          foreach ($d in 'loader/dist-full', 'loader/dist-small') {
+            $f = Join-Path $d 'Sanction.Loader.exe'
+            if (-not (Test-Path $f)) { throw "missing artifact: $f" }
+            $h = (Get-FileHash $f -Algorithm SHA256).Hash.ToLowerInvariant()
+            $s = (Get-Item $f).Length
+            Write-Host ("{0,-22} {1,12:N0} bytes  sha256 {2}" -f (Split-Path $d -Leaf), $s, $h)
+            Set-Content -Path (Join-Path $d 'SHA256SUMS.txt') -Value "$h  Sanction.Loader.exe"
+          }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Sanction.Loader-win-x64
+          path: |
+            loader/dist-full/Sanction.Loader.exe
+            loader/dist-full/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Sanction.Loader-win-x64-small
+          path: |
+            loader/dist-small/Sanction.Loader.exe
+            loader/dist-small/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30

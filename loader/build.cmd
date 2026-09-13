@@ -1,11 +1,12 @@
 @echo off
-REM Sanction Loader — publish script (Windows).
+REM Sanction Loader - publish script (Windows).
 REM
 REM   build.cmd                 self-contained single file .exe (end users)
 REM   build.cmd small           framework-dependent (~2 MB, needs .NET 8 Desktop Runtime)
 REM   build.cmd api https://... re-embed API URL + server key, then publish
 REM
 REM Output: loader\dist\Sanction.Loader.exe
+REM Log:    loader\build.log  (attach this file when asking for help)
 
 setlocal EnableDelayedExpansion
 cd /d "%~dp0"
@@ -18,11 +19,32 @@ if /i "%~1"=="api"    set "API=%~2"
 
 where dotnet >nul 2>nul
 if errorlevel 1 (
-  echo dotnet SDK ne najden. Ustanovite .NET 8 SDK: https://dotnet.microsoft.com/download/dotnet/8.0
+  echo [!] dotnet SDK ne najden.
+  echo     Ustanovite .NET 8 SDK: https://dotnet.microsoft.com/download/dotnet/8.0
+  echo     Posle ustanovki otkrojte NOVUJU komandnuju stroku i povtorite.
+  exit /b 1
+)
+
+echo -^> dotnet SDK
+for /f "delims=. tokens=1" %%V in ('dotnet --version 2^>nul') do set "SDKMAJOR=%%V"
+dotnet --version
+if not defined SDKMAJOR (
+  echo [!] Ne udalos' prochitat' versiyu SDK.
+  exit /b 1
+)
+if %SDKMAJOR% LSS 8 (
+  echo [!] SDK %SDKMAJOR%.x: proekt celitsya v net8.0-windows, nuzhen .NET 8 SDK ili novej.
+  echo     Bez etogo publish upadyot s NETSDK1045.
+  echo     Skachat: https://dotnet.microsoft.com/download/dotnet/8.0
   exit /b 1
 )
 
 if not "%API%"=="" (
+  where node >nul 2>nul
+  if errorlevel 1 (
+    echo [!] Rezhim "api" trebuet Node.js - on nuzhen dlya embed-loader-config.js
+    exit /b 1
+  )
   echo -^> vshivaem adres API i kluch servera: %API%
   pushd ..
   node tools\embed-loader-config.js %API%
@@ -35,6 +57,7 @@ if "%MODE%"=="framework-dependent" set "SELF=false"
 
 echo -^> dotnet publish ^(%MODE%, win-x64, single file^)
 if exist dist rmdir /s /q dist
+if exist build.log del /q build.log
 
 dotnet publish Sanction.Loader\Sanction.Loader.csproj ^
   -c Release ^
@@ -45,18 +68,35 @@ dotnet publish Sanction.Loader\Sanction.Loader.csproj ^
   -p:EnableCompressionInSingleFile=true ^
   -p:DebugType=none ^
   -p:DebugSymbols=false ^
-  -o dist
+  -o dist 2>&1 | powershell -NoProfile -Command "$input | Tee-Object -FilePath build.log"
 
-if errorlevel 1 (
-  echo Sborka zakonchilas' oshibkoj.
-  exit /b 1
+if exist dist\Sanction.Loader.exe goto ok
+
+echo.
+echo [!] Sborka ne udalas'. Polnyj log sohranyon: loader\build.log
+echo     Nizhe - veroyatnye prichiny po soderzhimomu loga.
+echo.
+findstr /c:"NETSDK1045" build.log >nul 2>nul && (
+  echo     NETSDK1045 - SDK starshe 8.0. Ustanovite .NET 8 SDK:
+  echo                  https://dotnet.microsoft.com/download/dotnet/8.0
 )
-
-if not exist dist\Sanction.Loader.exe (
-  echo Sborka ne najdena: dist\Sanction.Loader.exe
-  exit /b 1
+findstr /r /c:"NU1[0-9][0-9][0-9]" /c:"Unable to find package" /c:"nuget.org" build.log >nul 2>nul && (
+  echo     NuGet - self-contained sborka kachaet runtime pack iz nuget.org.
+  echo             Nuzhna set' bez blokirovki nuget.org, libo offline-variant:
+  echo                 build.cmd small
+  echo             ^(~2 MB, no na mashine pol'zovatelya ponadobitsya .NET 8 Desktop Runtime^)
 )
+findstr /r /c:"error CS[0-9][0-9][0-9][0-9]" build.log >nul 2>nul && (
+  echo     CS - oshibka kompilyacii v C#. Prishlite loader\build.log celikom.
+)
+findstr /r /c:"error MSB[0-9]*" build.log >nul 2>nul && (
+  echo     MSBuild - chasto iz-za puti s kirillicej/probelami ili zanyatogo faila.
+  echo               Zakrojte zapushennyj Sanction.Loader.exe i povtorite.
+)
+echo.
+exit /b 1
 
+:ok
 echo.
 echo Gotovo
 for %%F in (dist\Sanction.Loader.exe) do echo   fajl    loader\dist\Sanction.Loader.exe ^(%%~zF bajt^)

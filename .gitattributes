@@ -1,0 +1,18 @@
+# cmd.exe resolves labels and ^ line continuations by byte offset, so a batch
+# file checked out with LF endings can fail before dotnet is even invoked
+# ("The system cannot find the batch label specified"). Keep the bytes as
+# committed and never let git normalise them.
+*.cmd  -text
+*.bat  -text
+
+# Shell scripts must stay LF or they break on Linux/macOS.
+*.sh   text eol=lf
+
+# Text sources are normalised to LF in the repository.
+*.js   text eol=lf
+*.cs   text eol=lf
+*.ejs  text eol=lf
+*.css  text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+*.yml  text eol=lf
