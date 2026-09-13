@@ -5,24 +5,24 @@ namespace Sanction.Loader.Core;
 /// Regenerate:  npm run loader:config [https://api.example.com]
 ///
 ///   api base   http://127.0.0.1:3000
-///   key id     3bafb11784b59f82
+///   key id     5e53b522757426b5
 ///   channel    stable
-///   embedded   2026-09-13T13:17:07.757Z
+///   embedded   2026-09-13T18:46:02.898Z
 /// </summary>
 internal static class BuildConfig
 {
     /// <summary>Base URL of the Sanction API, no trailing slash.</summary>
     public const string ApiBase = "http://127.0.0.1:3000";
 
-    /// <summary>PEM (SPKI) of the server identity key — ECDSA P-256, id 3bafb11784b59f82.</summary>
+    /// <summary>PEM (SPKI) of the server identity key — ECDSA P-256, id 5e53b522757426b5.</summary>
     public const string ServerPublicKeyPem = @"-----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8S1tA9V0dKaPlE8/gNLK+Oqpr8fm
-PmwaL1oQur++G687NI7VCLlagjqOhUVaHKfFqAyGYIPjYrd13AMwQXU19A==
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEKAsHwiPGNbToFizqN5xH3jc5Q+WY
+vf+zVJD7hkj8NoUI8wp+n6ydPBucniSqTgd2k+23j+UnF+FA10CgJFjbrA==
 -----END PUBLIC KEY-----";
 
     /// <summary>Release channel reported to the server: stable | beta.</summary>
     public const string Channel = "stable";
 
     /// <summary>UTC timestamp of the configuration embed, for support requests.</summary>
-    public const string ConfiguredAt = "2026-09-13T13:17:07.758Z";
+    public const string ConfiguredAt = "2026-09-13T18:46:02.898Z";
 }
