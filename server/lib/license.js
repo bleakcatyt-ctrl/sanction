@@ -66,12 +66,18 @@ function state(license) {
   }
   const graceMs = config.licensing.graceMinutes * 60_000;
   const usable = status === 'active' && !expired && (!license.expires_at || license.expires_at + graceMs > t);
+  // A paid key that has not been activated yet must stay downloadable: with the
+  // default on_first_login activation the loader itself is what activates the
+  // license, so gating the download on `usable` would make the very first
+  // download unreachable and the key could never start.
+  const downloadable = (status === 'active' || status === 'pending') && !expired;
 
   return {
     ...license,
     status,
     expired,
     usable,
+    downloadable,
     activated: !!license.activated_at,
     remaining_ms: license.expires_at ? Math.max(0, license.expires_at - t) : null,
     remaining_days: license.expires_at ? Math.max(0, Math.floor((license.expires_at - t) / DAY)) : null,

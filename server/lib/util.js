@@ -27,11 +27,11 @@ function randomKey(groups = 4, size = 4, prefix = 'SNC') {
   return prefix ? `${prefix}-${parts.join('-')}` : parts.join('-');
 }
 
-/** Loader login is short, memorable and unique-ish: sanction_xxxx */
+/** Loader login is short, memorable and unique-ish: snc_k7qm2z */
 function randomLoaderLogin() {
-  const bytes = crypto.randomBytes(4);
+  const bytes = crypto.randomBytes(6);
   let suffix = '';
-  for (let i = 0; i < 5; i++) suffix += KEY_ALPHABET[bytes[i % bytes.length] + i] === undefined ? 'X' : KEY_ALPHABET[(bytes[i % bytes.length] + i * 7) % KEY_ALPHABET.length];
+  for (let i = 0; i < 6; i++) suffix += KEY_ALPHABET[bytes[i] % KEY_ALPHABET.length];
   return `snc_${suffix.toLowerCase()}`;
 }
 

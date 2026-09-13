@@ -99,7 +99,7 @@
                   <h3>Быстрый старт</h3>
                   <div class="sub">Данные для входа в лоадер и загрузка сборки</div>
                 </div>
-                <% if (lic && lic.usable) { %>
+                <% if (lic && lic.downloadable) { %>
                   <button class="btn btn-primary btn-sm" id="dlBtn" data-license="<%= lic.id %>"><%- icon('download') %> Скачать лоадер</button>
                 <% } %>
               </div>
@@ -299,7 +299,7 @@
                       <% if (l.revoked_reason) { %><dt>Причина</dt><dd class="mono" style="color:#fda4af"><%= l.revoked_reason %></dd><% } %>
                     </div>
                     <div class="row" style="margin-top:14px;gap:9px;flex-wrap:wrap">
-                      <% if (l.usable) { %>
+                      <% if (l.downloadable) { %>
                         <button class="btn btn-primary btn-sm" data-download="<%= l.id %>"><%- icon('download') %> Скачать лоадер</button>
                       <% } %>
                       <a href="/pricing" class="btn btn-ghost btn-sm"><%- icon('zap') %> Продлить</a>

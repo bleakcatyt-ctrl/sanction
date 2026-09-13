@@ -46,6 +46,17 @@
 
   /* --------------------------------------------------------------- api --- */
 
+  /** Re-read the CSRF token for the live session (stale tab recovery). */
+  async function refreshCsrf() {
+    try {
+      const res = await fetch('/api/auth/me', { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (data && data.csrf) { S.csrf = data.csrf; return true; }
+    } catch { /* offline — let the caller surface the original error */ }
+    return false;
+  }
+
   async function api(path, options) {
     const opts = options || {};
     const init = {
@@ -75,6 +86,12 @@
     if (data && data.csrf) S.csrf = data.csrf;
 
     if (!res.ok) {
+      // The page may carry a token that predates the current session (stale tab,
+      // session recreated server side). Refresh it once and replay the request
+      // instead of dead-ending the user with "Сессия устарела".
+      if (res.status === 403 && data && data.error === 'csrf_failed' && !opts._retried) {
+        if (await refreshCsrf()) return api(path, Object.assign({}, opts, { _retried: true }));
+      }
       const err = new Error((data && (data.message || data.error)) || ('HTTP ' + res.status));
       err.status = res.status;
       err.data = data || {};

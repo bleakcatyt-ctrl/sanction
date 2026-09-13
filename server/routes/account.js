@@ -31,6 +31,7 @@ function licenseView(lic, { withCredentials = true } = {}) {
     days: lic.days,
     status: st.status,
     usable: st.usable,
+    downloadable: st.downloadable,
     activated_at: lic.activated_at,
     expires_at: lic.expires_at,
     remaining_ms: st.remaining_ms,
@@ -98,7 +99,7 @@ router.post('/licenses/:id/download', ratelimit.middleware({ scope: 'dl', limit:
   if (!lic || lic.user_id !== req.user.id) return res.status(404).json({ ok: false, error: 'not_found' });
 
   const st = licenseSvc.state(lic);
-  if (!st.usable) {
+  if (!st.downloadable) {
     return res.status(402).json({
       ok: false,
       error: st.status === 'expired' ? 'subscription_expired' : 'not_entitled',

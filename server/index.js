@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('node:path');
+const fs = require('node:fs');
 const express = require('express');
 const compression = require('compression');
 const cookieParser = require('cookie-parser');
@@ -153,10 +154,20 @@ function start() {
     console.log(`  network  http://${config.host}:${config.port}`);
     console.log(`  database ${path.relative(config.root, config.dbFile)}`);
     console.log(`  mode     ${config.env}`);
+    const artifact = path.relative(config.root, config.build.artifactPath);
+    const hasArtifact = fs.existsSync(config.build.artifactPath);
+    console.log(`  loader   ${hasArtifact ? `${artifact} (${config.build.latestVersion})` : 'не собран'}`);
     if (seeded.created.length) {
       console.log(`  seeded   ${seeded.created.join(', ')}  (credentials -> data/seed-credentials.txt)`);
     }
     console.log(`└${line}┘\n`);
+    if (!hasArtifact) {
+      // Buyers see "Артефакт не загружен" in the dashboard; the operator needs
+      // the actionable half of that story, so say it once at boot.
+      console.log(`  [!] Сборки лоадера нет: выдача файла вернёт artifact_missing.`);
+      console.log(`      Сборка на Windows:  cd loader && build.cmd   (нужен .NET 8 SDK)`);
+      console.log(`      Результат положить в ${artifact}\n`);
+    }
   });
 
   /* periodic jobs */

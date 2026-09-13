@@ -24,6 +24,7 @@ router.post('/register', authLimiter, (req, res) => {
   if (errors.length) return res.status(400).json({ ok: false, error: 'validation', field_errors: errors });
 
   const user = users.create({ username, email, password, ip: util.clientIp(req) });
+  if (req.sessionToken) session.destroy(req, req.sessionToken);
   const s = session.create(req, user.id);
   res.json({
     ok: true,
@@ -52,6 +53,9 @@ router.post('/login', authLimiter, (req, res) => {
 
   const fresh = users.registerSuccess(user, ip);
   ratelimit.reset('login-ip', ip);
+  // Rotate: drop any prior session (stale tab, another account) before issuing
+  // the new one, so an old cookie can not ride along with this login.
+  if (req.sessionToken) session.destroy(req, req.sessionToken);
   const s = session.create(req, fresh.id);
   const next = String(req.body?.next || '').startsWith('/admin') ? '/admin/login' : '/dashboard';
 

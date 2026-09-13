@@ -25,6 +25,9 @@ process.env.SEED_ADMIN_PASSWORD = 'Sanction!2026';
 process.env.LOGIN_MAX_ATTEMPTS = '200';
 process.env.LOADER_MAX_ATTEMPTS = '3';
 process.env.LOGIN_LOCK_MINUTES = '1';
+// Points at a throwaway path so the download tests can materialise an artifact
+// without touching loader/dist (the rest of the suite still sees it missing).
+process.env.LOADER_ARTIFACT = path.join(TEST_DATA, 'Sanction.Loader.exe');
 
 // The suite fires hundreds of requests from a single loopback address, so the
 // production-shaped limiters are lifted here. They are covered explicitly in
@@ -840,6 +843,81 @@ test('loader credentials can be rotated', async () => {
   const fresh = new LoaderClient(base);
   const b = await fresh.auth(lic.loader.login, r.json.loader.password);
   assert.equal(b.status, 200, JSON.stringify(b.json));
+});
+
+test('loader login generator produces unique well-formed logins', () => {
+  // Regression: the suffix loop once guarded on a different index than the one
+  // it read, so most positions degraded to a literal "x" and every fresh
+  // install handed out the same snc_xxxxx login.
+  const util = require('../server/lib/util');
+  const seen = new Set();
+  for (let i = 0; i < 500; i++) {
+    const login = util.randomLoaderLogin();
+    assert.match(login, /^snc_[a-z2-9]{6}$/, `degenerate loader login: ${login}`);
+    seen.add(login);
+  }
+  assert.equal(seen.size, 500, 'loader login generator collided with itself');
+});
+
+test('each issued license gets its own loader login', async () => {
+  const logins = new Set();
+  for (let i = 0; i < 3; i++) {
+    const c = client();
+    await signup(c, 'multi' + uniq());
+    await buy(c, 'SANCTION-30');
+    const lic = (await c.get('/api/me/licenses')).json.licenses[0];
+    assert.match(lic.loader.login, /^snc_[a-z2-9]{6}$/, 'unexpected loader login shape');
+    logins.add(lic.loader.login);
+  }
+  assert.equal(logins.size, 3, 'loader logins are not unique across licenses');
+});
+
+test('login succeeds from a stale tab holding a live session cookie', async () => {
+  // The page a visitor submits may have been rendered before the current session
+  // existed, so window.SNC.csrf is empty. Login must not dead-end on csrf_failed.
+  const c = client();
+  const name = 'stale' + uniq();
+  await signup(c, name);
+
+  const again = await c.post('/api/auth/login', { login: name, password: 'Passw0rd!23' });
+  assert.equal(again.status, 200, 'login blocked for a client with an existing cookie: ' + JSON.stringify(again.json));
+  assert.equal(again.json.user.username, name);
+
+  const me = await c.get('/api/auth/me');
+  assert.equal(me.status, 200);
+  assert.equal(me.json.user.username, name);
+});
+
+test('a freshly bought key is downloadable before activation', async () => {
+  // Default activation is on_first_login, i.e. the loader activates the license.
+  // The browser download therefore has to work while the key is still pending,
+  // otherwise nothing could ever activate it.
+  const artifact = path.join(TEST_DATA, 'Sanction.Loader.exe');
+  fs.mkdirSync(path.dirname(artifact), { recursive: true });
+  fs.writeFileSync(artifact, 'MZ-dummy-build');
+  try {
+    const c = client();
+    await signup(c, 'dl' + uniq());
+    await buy(c, 'SANCTION-30');
+    const lic = (await c.get('/api/me/licenses')).json.licenses[0];
+    assert.equal(lic.status, 'pending');
+    assert.equal(lic.downloadable, true, 'pending key must be downloadable');
+
+    const r = await c.cpost(`/api/me/licenses/${lic.id}/download`, {});
+    assert.equal(r.status, 200, 'download refused for a paid pending key: ' + JSON.stringify(r.json));
+    assert.ok(r.json.url.startsWith('/dl/loader?t='), 'no signed ticket returned');
+
+    const file = await c.get(r.json.url);
+    assert.equal(file.status, 200);
+    assert.equal(file.text, 'MZ-dummy-build');
+    assert.match(String(file.headers.get('content-disposition')), /attachment; filename="Sanction.Loader.exe"/);
+
+    const page = await c.get('/dashboard');
+    assert.equal(page.status, 200);
+    assert.match(page.text, /Скачать лоадер/, 'dashboard hides the download button for a pending key');
+  } finally {
+    fs.rmSync(artifact, { force: true });
+  }
 });
 
 test('cleanup', () => {

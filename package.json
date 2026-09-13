@@ -10,7 +10,7 @@
     "dev": "node --watch server/index.js",
     "seed": "node scripts/seed.js",
     "reset": "node scripts/reset.js",
-    "test": "node --test tests/",
+    "test": "node --test tests/e2e.test.js",
     "loader:config": "node tools/embed-loader-config.js",
     "loader:build": "node tools/embed-loader-config.js && cd loader && ./build.sh",
     "smoke": "node scripts/smoke.js"

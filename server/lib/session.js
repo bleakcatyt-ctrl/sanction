@@ -78,10 +78,24 @@ function verifyCsrf(req) {
   return safeEqual(sent, csrfToken(s.tokenHash));
 }
 
+/**
+ * Writes that must stay reachable without a matching CSRF token.
+ *
+ * Login and register are the entry points: the page a visitor is looking at may
+ * have been rendered before the current session existed (a stale tab, a second
+ * registration, a session recreated after a DB reset), in which case the page
+ * carries an empty token and enforcing it would dead-end the user on the very
+ * form they are submitting with "Сессия устарела" — refresh does not help.
+ * Both routes rotate the session on success (see routes/auth.js), which removes
+ * the session-fixation value a token would otherwise add here.
+ */
+const CSRF_EXEMPT = new Set(['/api/auth/login', '/api/auth/register']);
+
 /** Middleware: attach req.user / req.session / req.csrf and enforce CSRF on writes. */
 function attach(req, res, next) {
   const found = read(req);
   req.sessionRecord = found ? found.session : null;
+  req.sessionToken = found ? found.token : null;
   req.sessionTokenHash = found ? found.tokenHash : null;
 
   if (found) {
@@ -98,7 +112,7 @@ function attach(req, res, next) {
   if (!req.csrf) req.csrf = '';
 
   const method = req.method.toUpperCase();
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && req.sessionTokenHash) {
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && req.sessionTokenHash && !CSRF_EXEMPT.has(req.path)) {
     // Webhook routes opt out via req.skipCsrf = true (set by the route module).
     if (!req.skipCsrf && !verifyCsrf(req)) {
       const wantsJson = req.path.startsWith('/api/') || req.get('accept')?.includes('json');
