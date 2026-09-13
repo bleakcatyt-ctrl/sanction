@@ -23,9 +23,9 @@
   <application xmlns="urn:schemas-microsoft-com:asm.v3">
     <windowsSettings>
       <!--
-        No dpiAware / dpiAwareness here on purpose: the project sets
-        ApplicationHighDpiMode=PerMonitorV2, and the WinForms analyser flags the
-        duplication as WFAC010. The API/property route is the supported one.
+        High-DPI settings are deliberately absent: the project property
+        ApplicationHighDpiMode already selects PerMonitorV2, and declaring the
+        same thing in this manifest is flagged as WFAC010.
       -->
       <longPathAware xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">true</longPathAware>
       <activeCodePage xmlns="http://schemas.microsoft.com/SMI/2019/WindowsSettings">UTF-8</activeCodePage>
