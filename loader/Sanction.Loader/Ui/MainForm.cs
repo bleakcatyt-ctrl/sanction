@@ -66,7 +66,6 @@ internal sealed class MainForm : Form
         _dash.LogoutRequested += async () => await LogoutAsync();
         _dash.InjectRequested += async () => await InjectAsync();
         _dash.ResetHwidRequested += () => OpenSite("/dashboard/license");
-        _dash.CopyTokenRequested += () => CopyToClipboard(_payload?.Token, "Токен лицензии скопирован");
 
         _content.Controls.Add(_auth);
         Controls.Add(_content);

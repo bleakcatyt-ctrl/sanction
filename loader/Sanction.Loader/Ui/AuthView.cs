@@ -137,7 +137,7 @@ internal sealed class AuthView : Panel
         _remember.SetBounds(pad, 244, 190, 22);
         _buy.SetBounds(Width - pad - 118, 244, 118, 22);
         _submit.SetBounds(pad, 284, w, 48);
-        _serverChip.SetBounds(Width - pad - 104, 372, 104, 24);
+        _serverChip.SetBounds(Width - pad - 104, 388, 104, 24);
         _dashboard.SetBounds(pad, 592, 128, 20);
         _status.SetBounds(pad + 146, 592, 128, 20);
         _copyHwid.SetBounds(Width - pad - 130, 592, 130, 20);
@@ -174,14 +174,13 @@ internal sealed class AuthView : Panel
         }
 
         // connection card
-        var card = new Rectangle(pad, 366, w, 200);
+        var card = new Rectangle(pad, 382, w, 196);
         Theme.Card(g, card, Theme.Panel, Theme.Border, 14);
 
         Theme.DrawText(g, "СОСТОЯНИЕ", Theme.SmallBold, Theme.Dim, new Rectangle(card.X + 16, card.Y + 12, 200, 18));
         var rowY = card.Y + 38;
-        Row(g, card, ref rowY, "Сервер", _serverOnline ? $"{AppConfig.ApiBase}" : "недоступен",
+        Row(g, card, ref rowY, "Сервер", _serverOnline ? AppConfig.ApiBase : "недоступен",
             _serverOnline ? Theme.Muted : Theme.Err, mono: true);
-        Row(g, card, ref rowY, "Задержка", _serverOnline ? $"{_latency} мс" : "—");
         Row(g, card, ref rowY, "Устройство", Machine.Label);
         Row(g, card, ref rowY, "HWID", Machine.ShortId, Theme.Accent2, mono: true);
         Row(g, card, ref rowY, "Протокол", "ECDH P-256 · AES-256-GCM");

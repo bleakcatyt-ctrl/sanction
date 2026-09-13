@@ -27,9 +27,8 @@ internal sealed class DashboardView : Panel
     private readonly FlatButton _refresh;
     private readonly FlatButton _download;
     private readonly FlatButton _logout;
+    private readonly FlatButton _hwid;
     private readonly LogView _log;
-    private readonly TextLink _resetHwid;
-    private readonly TextLink _copyToken;
 
     private DashboardState _s = new();
     private string _notice = string.Empty;
@@ -41,7 +40,6 @@ internal sealed class DashboardView : Panel
     public event Action? LogoutRequested;
     public event Action? InjectRequested;
     public event Action? ResetHwidRequested;
-    public event Action? CopyTokenRequested;
 
     public DashboardView()
     {
@@ -76,19 +74,17 @@ internal sealed class DashboardView : Panel
         _download = new FlatButton { Text = "Сборка", Kind = ButtonKind.Ghost, Glyph = "download", Height = 40 };
         _download.Click += (_, _) => DownloadRequested?.Invoke();
 
+        _hwid = new FlatButton { Text = "HWID", Kind = ButtonKind.Ghost, Glyph = "chip", Height = 40 };
+        _hwid.Click += (_, _) => ResetHwidRequested?.Invoke();
+
         _logout = new FlatButton { Text = "Выйти", Kind = ButtonKind.Danger, Glyph = "logout", Height = 40 };
         _logout.Click += (_, _) => LogoutRequested?.Invoke();
 
-        _log = new LogView { Height = 78 };
-
-        _resetHwid = new TextLink { Text = "сбросить HWID", External = false };
-        _resetHwid.Click += (_, _) => ResetHwidRequested?.Invoke();
-        _copyToken = new TextLink { Text = "скопировать токен", External = false };
-        _copyToken.Click += (_, _) => CopyTokenRequested?.Invoke();
+        _log = new LogView { Height = 70 };
 
         Controls.AddRange(new Control[]
         {
-            _state, _inject, _refresh, _download, _logout, _log, _resetHwid, _copyToken
+            _state, _inject, _refresh, _download, _hwid, _logout, _log
         });
     }
 
@@ -148,28 +144,25 @@ internal sealed class DashboardView : Panel
 
         _state.SetBounds(Width - pad - 116, 24, 116, 24);
 
-        var y = 156;
+        var y = 174;
         foreach (var id in GateIds)
         {
-            _gates[id].SetBounds(pad, y, w, 32);
-            y += 32;
+            _gates[id].SetBounds(pad, y, w, 30);
+            y += 30;
         }
 
         _inject.SetBounds(pad, y + 12, w, 58);
-        y += 82;
+        y += 100;                     // 58 на кнопку + 18 на строку-подсказку + отступы
 
-        var gap = 8;
-        var bw = (w - gap * 2) / 3;
+        const int gap = 8;
+        var bw = (w - gap * 3) / 4;
         _refresh.SetBounds(pad, y, bw, 40);
-        _download.SetBounds(pad + bw + gap, y, bw, 40);
-        _logout.SetBounds(pad + (bw + gap) * 2, y, w - (bw + gap) * 2, 40);
-        y += 52;
+        _download.SetBounds(pad + (bw + gap), y, bw, 40);
+        _hwid.SetBounds(pad + (bw + gap) * 2, y, bw, 40);
+        _logout.SetBounds(pad + (bw + gap) * 3, y, w - (bw + gap) * 3, 40);
+        y += 48;
 
-        _log.SetBounds(pad, y, w, 78);
-        y += 90;
-
-        _resetHwid.SetBounds(pad, y, 120, 20);
-        _copyToken.SetBounds(pad + 132, y, 140, 20);
+        _log.SetBounds(pad, y, w, 70);
     }
 
     /* ------------------------------------------------------------------- paint -- */
@@ -183,9 +176,8 @@ internal sealed class DashboardView : Panel
         var lic = _s.Payload?.License;
 
         PaintSubscriptionCard(g, new Rectangle(pad, 14, w, 132), lic);
-        PaintGatesHeader(g, new Rectangle(pad, 152, w, 20));
-        PaintHint(g, new Rectangle(pad, _inject.Bottom + 6, w, 20));
-        PaintFooter(g, new Rectangle(pad, Height - 30, w, 20));
+        PaintGatesHeader(g, new Rectangle(pad, 150, w, 20));
+        PaintHint(g, new Rectangle(pad, _inject.Bottom + 6, w, 18));
     }
 
     private void PaintSubscriptionCard(Graphics g, Rectangle card, LicenseInfo? lic)
@@ -273,13 +265,6 @@ internal sealed class DashboardView : Panel
             ? (_s.Game is null ? "Все проверки пройдены." : $"Все проверки пройдены · {_s.Game.Name} PID {_s.Game.Pid}")
             : _s.InjectHint ?? "Inject заблокирован до завершения проверок.";
         Theme.DrawText(g, hint, Theme.Small, Theme.Dim, r, ContentAlignment.MiddleCenter);
-    }
-
-    private void PaintFooter(Graphics g, Rectangle r)
-    {
-        Theme.DrawText(g, $"сессия {Fmt.Short(_s.Payload?.Session?.Sid, 12)} · {AppConfig.Version} · {AppConfig.Channel}",
-            Theme.MonoSmall, Theme.Alpha(Theme.Dim, 190), r, ContentAlignment.MiddleLeft);
-        Theme.DrawText(g, Machine.Description, Theme.MonoSmall, Theme.Alpha(Theme.Dim, 190), r, ContentAlignment.MiddleRight);
     }
 
     private static string PlanName(string? plan, int days) => plan switch

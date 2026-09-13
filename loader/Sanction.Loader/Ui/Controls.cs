@@ -88,7 +88,8 @@ internal sealed class FlatButton : Control
         }
 
         var label = Text ?? string.Empty;
-        var size = Theme.Measure(label, Theme.Button);
+        var font = Width < 132 ? Theme.ButtonSmall : Theme.Button;
+        var size = Theme.Measure(label, font);
         var glyphBox = 18;
         var gap = string.IsNullOrEmpty(Glyph) ? 0 : 8;
         var total = size.Width + gap + glyphBox;
@@ -101,7 +102,7 @@ internal sealed class FlatButton : Control
             x += glyphBox + gap;
         }
 
-        Theme.DrawText(g, label, Theme.Button, text,
+        Theme.DrawText(g, label, font, text,
             new Rectangle(x, 0, Math.Max(1, Width - x), Height), ContentAlignment.MiddleLeft);
     }
 
@@ -288,7 +289,7 @@ internal sealed class GateRow : Control
         SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint |
                  ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
         DoubleBuffered = true;
-        Height = 32;
+        Height = 30;
     }
 
     public void Set(Gate gate)
