@@ -1,0 +1,14 @@
+# Секреты и данные НИКОГДА не должны лежать в репозитории.
+# Они живут вне папки проекта (~/.config/vektor, ~/.local/share/vektor), но на всякий случай:
+.env
+.env.*
+*.env
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.pem
+*.key
+data/
+node_modules/
+.DS_Store
