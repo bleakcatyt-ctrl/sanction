@@ -1,0 +1,16 @@
+{
+  "name": "vektor-jobs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Вектор — агрегатор вакансий для ИИ-разработчиков с радаром компаний и платной подпиской (RollyPay).",
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server/index.js",
+    "dev": "VEKTOR_DEMO=1 VEKTOR_DEV_FAKE_PAYMENTS=1 node --disable-warning=ExperimentalWarning server/index.js",
+    "init-secrets": "node scripts/init-secrets.js",
+    "crawl": "node --disable-warning=ExperimentalWarning scripts/crawl-once.js",
+    "test": "node --disable-warning=ExperimentalWarning --test \"test/*.test.js\""
+  }
+}

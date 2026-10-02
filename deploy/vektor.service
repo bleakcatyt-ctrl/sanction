@@ -1,0 +1,24 @@
+# /etc/systemd/system/vektor.service
+[Unit]
+Description=Vektor job board
+After=network.target
+
+[Service]
+User=vektor
+WorkingDirectory=/opt/vektor
+Environment=NODE_ENV=production
+Environment=VEKTOR_ENV_FILE=/etc/vektor/vektor.env
+Environment=VEKTOR_DATA_DIR=/var/lib/vektor
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning server/index.js
+Restart=always
+# Жёсткая изоляция процесса
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/vektor
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target
